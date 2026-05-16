@@ -16,6 +16,7 @@
                  @refresh-before="refreshBefore"
                  @right-search="rightSearch"
                  :type="'all-email'"
+                 pagination
 
     >
       <template #first>
@@ -294,8 +295,8 @@ function jumpContent(email) {
 }
 
 
-function getEmailList(emailId, size) {
-  return allEmailList({emailId, size, ...params})
+function getEmailList(emailId, size, num) {
+  return allEmailList({emailId, size, num, ...params})
 }
 
 async function latest() {

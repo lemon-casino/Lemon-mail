@@ -106,23 +106,23 @@
           <el-button size="small" text type="primary" @click="openStorage">{{ $t('storageOpenAction') }}</el-button>
         </div>
 
-        <div class="foot-tip" v-if="noLoading && activeAccounts.length > 0 && !searchKeyword">
-          {{ accountTotal || activeAccounts.length }} {{ $t('accountTotal') }}
+        <div class="foot-tip" v-if="noLoading && displayAccountTotal > 0">
+          {{ displayAccountTotal }} {{ $t('accountTotal') }}
           <span v-if="isStorageRoute && collectedCount" class="foot-tip-meta">/ {{ collectedCount }} {{ $t('collectedMailboxes') }}</span>
         </div>
-        <div class="empty" v-if="noLoading && accounts.length === 0 && !showAccountLoading">
+        <div class="empty" v-if="noLoading && filteredAccounts.length === 0 && !showAccountLoading">
           <el-empty :image-size="40" :description="$t('noMessagesFound')"/>
         </div>
       </div>
     </el-scrollbar>
-    <div class="account-pagination" v-if="accountTotal > queryParams.size && !searchKeyword">
+    <div class="account-pagination" v-if="displayAccountTotal > queryParams.size">
       <el-pagination
         v-model:current-page="queryParams.num"
         v-model:page-size="queryParams.size"
         small
         :pager-count="5"
         layout="prev, pager, next"
-        :total="accountTotal"
+        :total="displayAccountTotal"
         @current-change="handleAccountPageChange"
       />
     </div>
@@ -378,6 +378,7 @@ const storageDialogVisible = ref(false);
 const storageConfigLoading = ref(false);
 const storageMutationLoading = ref(false);
 const storageLoadAllLoading = ref(false);
+const allAccountsLoaded = ref(false);
 const storageState = reactive({
   loaded: false,
   scope: '',
@@ -450,14 +451,27 @@ const collectedCount = computed(() => (
 ));
 const activeAccounts = computed(() => (isStorageRoute.value ? visibleAccounts.value : accounts));
 
-// Filtered accounts based on search keyword
-const filteredAccounts = computed(() => {
+const storageFilteredAccounts = computed(() => {
+  if (!isStorageRoute.value) return [];
   if (!searchKeyword.value) return activeAccounts.value;
   const kw = searchKeyword.value.toLowerCase();
   return activeAccounts.value.filter(a =>
     a.email.toLowerCase().includes(kw) ||
     (a.name && a.name.toLowerCase().includes(kw))
   );
+});
+
+const filteredAccounts = computed(() => {
+  if (!isStorageRoute.value) {
+    return accounts;
+  }
+
+  const start = (queryParams.num - 1) * queryParams.size;
+  return storageFilteredAccounts.value.slice(start, start + queryParams.size);
+});
+
+const displayAccountTotal = computed(() => {
+  return isStorageRoute.value ? storageFilteredAccounts.value.length : accountTotal.value;
 });
 
 function syncAccountStoreAccounts() {
@@ -480,13 +494,19 @@ if (hasPerm('account:query')) {
 watch(currentStorageScope, async (scope) => {
   if (scope) {
     storageState.loaded = false;
+    allAccountsLoaded.value = false;
     await loadStorageConfig(true);
+    await ensureAllAccountsLoaded();
   } else {
     storageDialogVisible.value = false;
     storageState.loaded = false;
     storageState.scope = '';
     storageState.rules = [];
     storageState.overrides = [];
+    allAccountsLoaded.value = false;
+    if (hasPerm('account:query')) {
+      getAccountList();
+    }
   }
   ensureSelectedAccount();
 }, { immediate: true });
@@ -525,6 +545,21 @@ watch(prefixMode, () => {
   if (showAdd.value) {
     generatePrefix();
   }
+});
+
+watch(searchKeyword, () => {
+  queryParams.num = 1;
+
+  if (!hasPerm('account:query')) {
+    return;
+  }
+
+  if (isStorageRoute.value) {
+    ensureSelectedAccount();
+    return;
+  }
+
+  getAccountList();
 });
 
 
@@ -735,10 +770,11 @@ function restoreAccount(acc) {
 }
 
 function refresh() {
-  if (loading.value) return;
+  if (loading.value || storageLoadAllLoading.value) return;
   loading.value = false;
   noLoading.value = false;
   storageState.loaded = false;
+  allAccountsLoaded.value = false;
   queryParams.num = 1;
   getSkeletonRows();
   scrollbarRef.value.setScrollTop(0);
@@ -786,11 +822,18 @@ async function copyAccount(email) {
 }
 
 function getAccountList() {
+  if (!hasPerm('account:query')) return;
   if (loading.value) return;
+
+  if (isStorageRoute.value) {
+    ensureAllAccountsLoaded();
+    return;
+  }
+
   loading.value = true;
   noLoading.value = false;
   let start = Date.now();
-  accountList(0, queryParams.size, null, queryParams.num).then(async data => {
+  accountList(0, queryParams.size, null, queryParams.num, searchKeyword.value).then(async data => {
     let duration = Date.now() - start;
     if (duration < 200) await sleep(200 - duration);
     const list = data.list || [];
@@ -834,7 +877,8 @@ async function loadStorageConfig(force = false) {
 }
 
 async function ensureAllAccountsLoaded() {
-  if (storageLoadAllLoading.value) return;
+  if (!hasPerm('account:query')) return;
+  if (storageLoadAllLoading.value || allAccountsLoaded.value) return;
 
   storageLoadAllLoading.value = true;
   try {
@@ -863,6 +907,7 @@ async function ensureAllAccountsLoaded() {
     accounts.splice(0, accounts.length, ...allAccounts);
     accountTotal.value = allAccounts.length;
     noLoading.value = true;
+    allAccountsLoaded.value = true;
     syncAccountStoreAccounts();
   } finally {
     storageLoadAllLoading.value = false;

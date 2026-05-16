@@ -1,7 +1,7 @@
 import http from '@/axios/index.js'
 
-export function accountList(accountId, size, lastSort, num) {
-    return http.get('/account/list', {params: {accountId, size, lastSort, num}});
+export function accountList(accountId, size, lastSort, num, keyword) {
+    return http.get('/account/list', {params: {accountId, size, lastSort, num, keyword}});
 }
 
 export function accountRecoveryList(keyword, size = 10, num = 1) {

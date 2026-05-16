@@ -603,18 +603,20 @@ const emailService = {
 
 	async allList(c, params) {
 
-		let { emailId, size, name, subject, accountEmail, userEmail, type, timeSort } = params;
+		let { emailId, size, name, subject, accountEmail, userEmail, type, timeSort, num } = params;
 
 		size = Number(size);
 
 		emailId = Number(emailId);
 		timeSort = Number(timeSort);
+		num = Number(num);
+		const pageMode = !isNaN(num) && num > 0;
 
 		if (size > 50) {
 			size = 50;
 		}
 
-		if (!emailId) {
+		if (!pageMode && !emailId) {
 
 			if (timeSort) {
 				emailId = 0;
@@ -667,10 +669,12 @@ const emailService = {
 
 		const countConditions = [...conditions];
 
-		if (timeSort) {
-			conditions.unshift(gt(email.emailId, emailId));
-		} else {
-			conditions.unshift(lt(email.emailId, emailId));
+		if (!pageMode) {
+			if (timeSort) {
+				conditions.unshift(gt(email.emailId, emailId));
+			} else {
+				conditions.unshift(lt(email.emailId, emailId));
+			}
 		}
 
 		const query = orm(c).select({ ...email, userEmail: user.email })
@@ -689,7 +693,7 @@ const emailService = {
 			query.orderBy(desc(email.emailId));
 		}
 
-		const listQuery = await query.limit(size).all();
+		const listQuery = pageMode ? await query.limit(size).offset((num - 1) * size).all() : await query.limit(size).all();
 		const totalQuery = await queryCount.get();
 		const latestEmailQuery = await orm(c).select().from(email)
 			.where(and(

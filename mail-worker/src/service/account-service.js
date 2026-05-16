@@ -177,12 +177,13 @@ const accountService = {
 
 	async list(c, params, userId) {
 
-		let { accountId, size, lastSort, num } = params;
+		let { accountId, size, lastSort, num, keyword } = params;
 
 		accountId = Number(accountId);
 		size = Number(size);
 		lastSort = Number(lastSort);
 		num = Number(num);
+		keyword = String(keyword || '').trim();
 		const pageMode = !Number.isNaN(num) && num > 0;
 
 		if (size > 30) {
@@ -200,6 +201,15 @@ const accountService = {
 			eq(account.userId, userId),
 			eq(account.isDel, isDel.NORMAL),
 		];
+
+		if (keyword) {
+			baseConditions.push(
+				or(
+					sql`${account.email} COLLATE NOCASE LIKE ${`%${keyword}%`}`,
+					sql`${account.name} COLLATE NOCASE LIKE ${`%${keyword}%`}`,
+				)
+			);
+		}
 
 		const listConditions = [...baseConditions];
 
