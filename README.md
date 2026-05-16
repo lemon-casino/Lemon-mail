@@ -1,17 +1,8 @@
 <div align="center">
 
-# Xi-Mail
+# Lemon-mail
 
 **基于 Cloudflare 全家桶的自托管临时邮箱服务**
-
-二次开发自 [cloud-mail](https://github.com/eoao/cloud-mail) · UI 全面重设计 · 功能持续扩展
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![GitHub release](https://img.shields.io/github/v/release/PastKing/xi-mail?color=6366f1)](https://github.com/PastKing/xi-mail/releases)
-[![Stars](https://img.shields.io/github/stars/PastKing/xi-mail?style=flat&color=6366f1)](https://github.com/PastKing/xi-mail/stargazers)
-[![Telegram](https://img.shields.io/badge/Telegram-@pk__oa-26A5E4?logo=telegram)](https://t.me/pk_oa)
-
-[简体中文](README.md) | [English](README-en.md)
 
 </div>
 
@@ -19,13 +10,12 @@
 
 ## 📖 项目简介
 
-Xi-Mail 是基于 **Cloudflare Workers / D1 / KV / R2** 构建的全栈自托管邮箱服务，在 [cloud-mail](https://github.com/eoao/cloud-mail) 开源项目基础上进行二次开发，带来全面 UI 重设计与一系列新功能。
+基于 **Cloudflare Workers / D1 / KV / R2** 构建的全栈自托管邮箱服务，带来全面 UI 重设计与一系列新功能。
 
 只需一个托管于 Cloudflare 的域名，即可免费部署支持多账户、多域名、层级权限的完整邮箱平台。
 
 ---
 
-## ✨ 相比上游新增 / 改动
 
 ### 🎨 UI 全面重设计（Linear 风格）
 - 采用 **TailwindCSS 4** + **@vueuse/motion** 动画库重构前端样式系统
@@ -96,7 +86,7 @@ Xi-Mail 是基于 **Cloudflare Workers / D1 / KV / R2** 构建的全栈自托管
 ## 📁 目录结构
 
 ```
-xi-mail/
+Lemon-mail/
 ├── mail-worker/                 # Cloudflare Worker 后端
 │   ├── src/
 │   │   ├── api/                 # 接口路由层
@@ -132,16 +122,16 @@ xi-mail/
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/PastKing/xi-mail.git
-cd xi-mail/mail-worker
+git clone https://github.com/lemon-casino/Lemon-mail.git
+cd Lemon-mail/mail-worker
 
 # 2. 安装依赖
 npm install
 
 # 3. 创建 Cloudflare 资源
-npx wrangler d1 create xi-mail          # 记录输出的 database_id
+npx wrangler d1 create Lemon-mail          # 记录输出的 database_id
 npx wrangler kv namespace create kv     # 记录输出的 id
-npx wrangler r2 bucket create xi-mail
+npx wrangler r2 bucket create Lemon-mail
 
 # 4. 配置 wrangler.toml
 cp wrangler.example.toml wrangler.toml
@@ -169,8 +159,6 @@ admin       = "admin@example.com"    # 管理员邮箱（首次初始化后无�
 jwt_secret  = "your-secret"          # JWT 签名密钥（至少 32 位随机字符串）
 ```
 
-> 部署更详细的说明请参考上游项目：[cloud-mail 部署文档](https://github.com/eoao/cloud-mail)
-
 ---
 
 ## 📡 全局 API Token
@@ -193,27 +181,10 @@ x-admin-auth: <your-token>
 
 ---
 
-## 💬 社区 & 支持
 
-| 渠道 | 链接 |
-|------|------|
-| GitHub | [PastKing/xi-mail](https://github.com/PastKing/xi-mail) |
-| Telegram 频道 | [@pk_oa](https://t.me/pk_oa) |
-| 上游项目 | [eoao/cloud-mail](https://github.com/eoao/cloud-mail) |
-
-### 捐款 (USDT)
-
-如果本项目对你有帮助，欢迎捐款支持持续开发：
-
-| 网络 | 地址 |
-|------|------|
-| BEP20 (BSC) | `0x555390f5c07cf76cc344f42612196e8669e3586b` |
-| TRC20 (TRON) | `TVqK4thJCsaaVvp1Dah9F5CFZ1iqw75f4G` |
 
 ---
 
 ## 📄 许可证
 
 本项目基于 [MIT License](LICENSE) 开源。
-
-原项目 [eoao/cloud-mail](https://github.com/eoao/cloud-mail) 同样采用 MIT 许可证，本项目保留原始版权声明。
