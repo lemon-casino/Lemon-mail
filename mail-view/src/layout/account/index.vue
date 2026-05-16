@@ -372,7 +372,7 @@ let skeletonRows = 8;
 const accountTotal = ref(0);
 const queryParams = reactive({
   num: 1,
-  size: 20
+  size: 10
 });
 const storageDialogVisible = ref(false);
 const storageConfigLoading = ref(false);
