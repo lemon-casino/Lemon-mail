@@ -28,7 +28,7 @@
     </div>
 
     <el-scrollbar class="scrollbar" ref="scrollbarRef">
-      <div v-infinite-scroll="getAccountList" :infinite-scroll-distance="400" :infinite-scroll-immediate="false">
+      <div>
         <!-- Account rows -->
         <div
           v-for="item in filteredAccounts"
@@ -101,27 +101,13 @@
           </div>
         </template>
 
-        <!-- Follow Loading Skeleton -->
-        <template v-if="accounts.length > 0 && !noLoading && !searchKeyword && !showAccountLoading">
-          <div class="skeleton-row">
-            <el-skeleton animated>
-              <template #template>
-                <div style="display:flex;align-items:center;gap:8px;padding:0 10px;">
-                  <el-skeleton-item variant="circle" style="width:16px;height:16px;flex-shrink:0"/>
-                  <el-skeleton-item variant="text" style="flex:1;height:14px"/>
-                </div>
-              </template>
-            </el-skeleton>
-          </div>
-        </template>
-
         <div v-if="isStorageRoute && storageReady && noLoading && visibleAccounts.length === 0 && accounts.length > 0 && !searchKeyword" class="storage-empty">
           <span>{{ $t('storageAllCollected') }}</span>
           <el-button size="small" text type="primary" @click="openStorage">{{ $t('storageOpenAction') }}</el-button>
         </div>
 
         <div class="foot-tip" v-if="noLoading && activeAccounts.length > 0 && !searchKeyword">
-          {{ activeAccounts.length }} {{ $t('accountTotal') }}
+          {{ accountTotal || activeAccounts.length }} {{ $t('accountTotal') }}
           <span v-if="isStorageRoute && collectedCount" class="foot-tip-meta">/ {{ collectedCount }} {{ $t('collectedMailboxes') }}</span>
         </div>
         <div class="empty" v-if="noLoading && accounts.length === 0 && !showAccountLoading">
@@ -129,6 +115,17 @@
         </div>
       </div>
     </el-scrollbar>
+    <div class="account-pagination" v-if="accountTotal > queryParams.size && !searchKeyword">
+      <el-pagination
+        v-model:current-page="queryParams.num"
+        v-model:page-size="queryParams.size"
+        small
+        :pager-count="5"
+        layout="prev, pager, next"
+        :total="accountTotal"
+        @current-change="handleAccountPageChange"
+      />
+    </div>
 
     <!-- Add dialog -->
     <el-dialog v-model="showAdd" class="account-base-dialog" :title="$t('addAccount')">
@@ -206,11 +203,11 @@
           v-model="recoveryKeyword"
           :placeholder="$t('accountRecoverySearch')"
           clearable
-          @clear="loadRecoveryAccounts"
-          @keyup.enter="loadRecoveryAccounts"
+          @clear="loadRecoveryAccounts(true)"
+          @keyup.enter="loadRecoveryAccounts(true)"
         >
           <template #append>
-            <el-button @click="loadRecoveryAccounts">{{ $t('searchAction') }}</el-button>
+            <el-button @click="loadRecoveryAccounts(true)">{{ $t('searchAction') }}</el-button>
           </template>
         </el-input>
         <div v-loading="recoveryLoading" class="recovery-list">
@@ -228,11 +225,31 @@
             >
               {{ $t('restore') }}
             </el-button>
+            <el-button
+              size="small"
+              type="danger"
+              text
+              :loading="recoveryDeleteId === item.accountId"
+              @click="physicsDeleteAccount(item)"
+            >
+              {{ $t('permanentDelete') }}
+            </el-button>
           </div>
           <el-empty
             v-if="!recoveryLoading && recoveryAccounts.length === 0"
             :description="$t('accountRecoveryEmpty')"
             :image-size="60"
+          />
+        </div>
+        <div class="recovery-pagination" v-if="recoveryTotal > recoveryQuery.size">
+          <el-pagination
+            v-model:current-page="recoveryQuery.num"
+            small
+            :pager-count="5"
+            layout="prev, pager, next"
+            :total="recoveryTotal"
+            :page-size="recoveryQuery.size"
+            @current-change="loadRecoveryAccounts"
           />
         </div>
       </div>
@@ -271,6 +288,7 @@ import {
   accountAdd,
   accountGeneratePrefix,
   accountDelete,
+  accountPhysicsDelete,
   accountRestore,
   accountSetName,
   accountSetAllReceive,
@@ -318,7 +336,6 @@ const domainList = settingStore.domainList;
 const accounts = reactive([]);
 const noLoading = ref(false);
 const loading = ref(false);
-const followLoading = ref(false);
 const verifyShow = ref(false);
 const setNameShow = ref(false);
 const setNameLoading = ref(false);
@@ -326,8 +343,14 @@ const accountName = ref(null);
 const recoveryShow = ref(false);
 const recoveryLoading = ref(false);
 const recoveryRestoreId = ref(0);
+const recoveryDeleteId = ref(0);
 const recoveryKeyword = ref('');
 const recoveryAccounts = reactive([]);
+const recoveryTotal = ref(0);
+const recoveryQuery = reactive({
+  num: 1,
+  size: 10,
+});
 const addRef = ref({});
 const scrollbarRef = ref({});
 const searchKeyword = ref('');
@@ -346,7 +369,11 @@ const prefixModeOptions = [
   { label: t('randomPrefix'), value: 'random' }
 ];
 let skeletonRows = 8;
-const queryParams = { size: 50 };
+const accountTotal = ref(0);
+const queryParams = reactive({
+  num: 1,
+  size: 20
+});
 const storageDialogVisible = ref(false);
 const storageConfigLoading = ref(false);
 const storageMutationLoading = ref(false);
@@ -632,7 +659,11 @@ function remove(acc) {
         accounts.splice(index, 1);
       }
       syncAccountStoreAccounts();
-      if (accounts.length < queryParams.size) getAccountList();
+      accountTotal.value = Math.max(accountTotal.value - 1, 0);
+      if (accounts.length === 0 && queryParams.num > 1) {
+        queryParams.num--;
+      }
+      getAccountList();
       ElMessage({ message: t('delSuccessMsg'), type: 'success', plain: true });
     });
   });
@@ -641,16 +672,41 @@ function remove(acc) {
 function openRecovery() {
   recoveryShow.value = true;
   recoveryKeyword.value = '';
+  recoveryQuery.num = 1;
   loadRecoveryAccounts();
 }
 
-function loadRecoveryAccounts() {
+function loadRecoveryAccounts(resetPage = false) {
   if (recoveryLoading.value) return;
+  if (resetPage === true) {
+    recoveryQuery.num = 1;
+  }
   recoveryLoading.value = true;
-  accountRecoveryList(recoveryKeyword.value).then(list => {
-    recoveryAccounts.splice(0, recoveryAccounts.length, ...list);
+  accountRecoveryList(recoveryKeyword.value, recoveryQuery.size, recoveryQuery.num).then(data => {
+    recoveryAccounts.splice(0, recoveryAccounts.length, ...(data.list || []));
+    recoveryTotal.value = data.total || 0;
   }).finally(() => {
     recoveryLoading.value = false;
+  });
+}
+
+function physicsDeleteAccount(acc) {
+  ElMessageBox.confirm(t('accountPermanentDeleteConfirm', { msg: acc.email }), {
+    confirmButtonText: t('permanentDelete'),
+    cancelButtonText: t('cancel'),
+    type: 'warning'
+  }).then(() => {
+    recoveryDeleteId.value = acc.accountId;
+    accountPhysicsDelete(acc.accountId).then(() => {
+      recoveryTotal.value = Math.max(recoveryTotal.value - 1, 0);
+      if (recoveryAccounts.length === 1 && recoveryQuery.num > 1) {
+        recoveryQuery.num--;
+      }
+      loadRecoveryAccounts();
+      ElMessage({ message: t('delSuccessMsg'), type: 'success', plain: true });
+    }).finally(() => {
+      recoveryDeleteId.value = 0;
+    });
   });
 }
 
@@ -681,11 +737,9 @@ function restoreAccount(acc) {
 function refresh() {
   if (loading.value) return;
   loading.value = false;
-  followLoading.value = false;
   noLoading.value = false;
   storageState.loaded = false;
-  queryParams.accountId = 0;
-  queryParams.lastSort = null;
+  queryParams.num = 1;
   getSkeletonRows();
   scrollbarRef.value.setScrollTop(0);
   accounts.splice(0, accounts.length);
@@ -732,25 +786,34 @@ async function copyAccount(email) {
 }
 
 function getAccountList() {
-  if (loading.value || followLoading.value || noLoading.value) return;
-  if (accounts.length === 0) { loading.value = true; }
-  else { followLoading.value = true; }
+  if (loading.value) return;
+  loading.value = true;
+  noLoading.value = false;
   let start = Date.now();
-  const accountId = accounts.length > 0 ? accounts.at(-1).accountId : 0;
-  const lastSort = accounts.length > 0 ? accounts.at(-1).sort : null;
-  accountList(accountId, queryParams.size, lastSort).then(async list => {
+  accountList(0, queryParams.size, null, queryParams.num).then(async data => {
     let duration = Date.now() - start;
     if (duration < 200) await sleep(200 - duration);
-    if (list.length < queryParams.size) noLoading.value = true;
-    if (accounts.length === 0 && list[0]) accountStore.currentAccount = list[0];
-    accounts.push(...list);
+    const list = data.list || [];
+    accountTotal.value = data.total || 0;
+    noLoading.value = true;
+    accounts.splice(0, accounts.length, ...list);
+    if (list[0]) accountStore.currentAccount = list[0];
+    if (list.length === 0 && queryParams.num > 1) {
+      queryParams.num--;
+      loading.value = false;
+      getAccountList();
+      return;
+    }
     syncAccountStoreAccounts();
     loading.value = false;
-    followLoading.value = false;
   }).catch(() => {
     loading.value = false;
-    followLoading.value = false;
   });
+}
+
+function handleAccountPageChange() {
+  getAccountList();
+  scrollbarRef.value.setScrollTop(0);
 }
 
 async function loadStorageConfig(force = false) {
@@ -771,27 +834,36 @@ async function loadStorageConfig(force = false) {
 }
 
 async function ensureAllAccountsLoaded() {
-  if (storageLoadAllLoading.value || noLoading.value) return;
+  if (storageLoadAllLoading.value) return;
 
   storageLoadAllLoading.value = true;
   try {
-    while (loading.value || followLoading.value) {
+    while (loading.value) {
       await sleep(60);
     }
 
-    while (!noLoading.value) {
-      const lastAccount = accounts.at(-1);
-      const list = await accountList(lastAccount?.accountId || 0, queryParams.size, lastAccount?.sort ?? null);
+    let allAccounts = [];
+    let accountId = 0;
+    let lastSort = null;
+
+    while (true) {
+      const list = await accountList(accountId, 30, lastSort);
       if (!list.length) {
-        noLoading.value = true;
         break;
       }
-      accounts.push(...list);
-      syncAccountStoreAccounts();
-      if (list.length < queryParams.size) {
-        noLoading.value = true;
+      allAccounts.push(...list);
+      const lastAccount = list.at(-1);
+      accountId = lastAccount.accountId;
+      lastSort = lastAccount.sort;
+      if (list.length < 30) {
+        break;
       }
     }
+
+    accounts.splice(0, accounts.length, ...allAccounts);
+    accountTotal.value = allAccounts.length;
+    noLoading.value = true;
+    syncAccountStoreAccounts();
   } finally {
     storageLoadAllLoading.value = false;
   }

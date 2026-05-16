@@ -458,6 +458,8 @@ const zh = {
     accountRecoverySearch: '输入已删除邮箱搜索',
     accountRecoveryEmpty: '没有可找回的邮箱',
     accountRecoveryConfirm: '确认找回 {msg} 吗？',
-    accountRecoverySuccess: '邮箱已找回'
+    accountRecoverySuccess: '邮箱已找回',
+    permanentDelete: '彻底删除',
+    accountPermanentDeleteConfirm: '确认彻底删除 {msg} 吗？此操作会永久删除该邮箱及其所有邮件，无法恢复。'
 }
 export default zh

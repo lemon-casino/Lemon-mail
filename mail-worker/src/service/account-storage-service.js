@@ -340,6 +340,16 @@ const accountStorageService = {
 			.run();
 	},
 
+	async removeOverridesByAccountId(c, userId, accountId) {
+		await orm(c)
+			.delete(accountCollectOverride)
+			.where(and(
+				eq(accountCollectOverride.userId, userId),
+				eq(accountCollectOverride.accountId, accountId),
+			))
+			.run();
+	},
+
 	getEmailDomain(email) {
 		const domain = emailUtils.getDomain(email);
 		return domain ? `@${domain.toLowerCase()}` : '';

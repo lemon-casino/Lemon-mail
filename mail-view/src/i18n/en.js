@@ -458,7 +458,9 @@ const en = {
     accountRecoverySearch: 'Search deleted mailbox',
     accountRecoveryEmpty: 'No recoverable mailboxes',
     accountRecoveryConfirm: 'Recover {msg}?',
-    accountRecoverySuccess: 'Mailbox restored'
+    accountRecoverySuccess: 'Mailbox restored',
+    permanentDelete: 'Delete Permanently',
+    accountPermanentDeleteConfirm: 'Permanently delete {msg}? This will delete the mailbox and all of its messages forever.'
 }
 
 export default en

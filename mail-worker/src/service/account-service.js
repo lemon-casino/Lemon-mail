@@ -175,40 +175,58 @@ const accountService = {
 		return orm(c).select().from(account).where(sql`${account.email} COLLATE NOCASE = ${email}`).get();
 	},
 
-	list(c, params, userId) {
+	async list(c, params, userId) {
 
-		let { accountId, size, lastSort } = params;
+		let { accountId, size, lastSort, num } = params;
 
 		accountId = Number(accountId);
 		size = Number(size);
 		lastSort = Number(lastSort);
+		num = Number(num);
+		const pageMode = !Number.isNaN(num) && num > 0;
 
 		if (size > 30) {
 			size = 30;
 		}
 
-		if (!accountId) {
+		if (!pageMode && !accountId) {
 			accountId = 0;
 			lastSort = 9999999999;
 		} else if(Number.isNaN(lastSort)) {
 			lastSort = 9999999999;
 		}
 
-		return orm(c).select().from(account).where(
-			and(
-				eq(account.userId, userId),
-				eq(account.isDel, isDel.NORMAL),
-					or(
-						lt(account.sort, lastSort),
-						and(
-							eq(account.sort, lastSort),
-							lt(account.accountId, accountId)
-						)
-					))
+		const baseConditions = [
+			eq(account.userId, userId),
+			eq(account.isDel, isDel.NORMAL),
+		];
+
+		const listConditions = [...baseConditions];
+
+		if (!pageMode) {
+			listConditions.push(
+				or(
+					lt(account.sort, lastSort),
+					and(
+						eq(account.sort, lastSort),
+						lt(account.accountId, accountId)
+					)
 				)
-			.orderBy(desc(account.sort), desc(account.accountId))
-			.limit(size)
-			.all();
+			);
+		}
+
+		const query = orm(c).select().from(account).where(and(...listConditions))
+			.orderBy(desc(account.sort), desc(account.accountId));
+
+		if (!pageMode) {
+			return query.limit(size).all();
+		}
+
+		const listQuery = query.limit(size).offset((num - 1) * size).all();
+		const totalQuery = orm(c).select({ total: count() }).from(account).where(and(...baseConditions)).get();
+		const [list, totalRow] = await Promise.all([listQuery, totalQuery]);
+
+		return { list, total: totalRow.total };
 	},
 
 	async delete(c, params, userId) {
@@ -237,9 +255,10 @@ const accountService = {
 	},
 
 	async recoveryList(c, params, userId) {
-		let { keyword, size } = params;
+		let { keyword, size, num } = params;
 		keyword = String(keyword || '').trim();
 		size = Number(size) || 50;
+		num = Number(num) || 1;
 
 		if (size > 100) {
 			size = 100;
@@ -254,13 +273,17 @@ const accountService = {
 			conditions.push(sql`${account.email} COLLATE NOCASE LIKE ${`%${keyword}%`}`);
 		}
 
-		return orm(c)
+		const query = orm(c)
 			.select()
 			.from(account)
 			.where(and(...conditions))
-			.orderBy(desc(account.accountId))
-			.limit(size)
-			.all();
+			.orderBy(desc(account.accountId));
+
+		const listQuery = query.limit(size).offset((num - 1) * size).all();
+		const totalQuery = orm(c).select({ total: count() }).from(account).where(and(...conditions)).get();
+		const [list, totalRow] = await Promise.all([listQuery, totalQuery]);
+
+		return { list, total: totalRow.total };
 	},
 
 	async restore(c, params, userId) {
@@ -409,6 +432,23 @@ const accountService = {
 		const { accountId } = params
 		await emailService.physicsDeleteByAccountId(c, accountId)
 		await orm(c).delete(account).where(eq(account.accountId, accountId)).run();
+	},
+
+	async physicsDeleteRecovered(c, params, userId) {
+		const accountId = Number(params.accountId);
+
+		if (!Number.isInteger(accountId) || accountId <= 0) {
+			throw new BizError(t('accountNotFound'));
+		}
+
+		const accountRow = await this.selectByIdIncludeDel(c, accountId);
+
+		if (!accountRow || accountRow.userId !== userId || accountRow.isDel !== isDel.DELETE) {
+			throw new BizError(t('accountNotFound'));
+		}
+
+		await accountStorageService.removeOverridesByAccountId(c, userId, accountId);
+		await this.physicsDelete(c, { accountId });
 	},
 
 	async setAllReceive(c, params, userId) {

@@ -1,11 +1,11 @@
 import http from '@/axios/index.js'
 
-export function accountList(accountId, size, lastSort) {
-    return http.get('/account/list', {params: {accountId, size, lastSort}});
+export function accountList(accountId, size, lastSort, num) {
+    return http.get('/account/list', {params: {accountId, size, lastSort, num}});
 }
 
-export function accountRecoveryList(keyword, size = 100) {
-    return http.get('/account/recovery/list', {params: {keyword, size}});
+export function accountRecoveryList(keyword, size = 10, num = 1) {
+    return http.get('/account/recovery/list', {params: {keyword, size, num}});
 }
 
 export function accountAdd(email,token) {
@@ -22,6 +22,10 @@ export function accountSetName(accountId,name) {
 
 export function accountDelete(accountId) {
     return http.delete('/account/delete', {params: {accountId}})
+}
+
+export function accountPhysicsDelete(accountId) {
+    return http.delete('/account/physicsDelete', {params: {accountId}})
 }
 
 export function accountRestore(accountId) {
