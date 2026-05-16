@@ -8,6 +8,10 @@ on:
       - "mail-view/**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   Deploy-cloud-mail:
     name: 🏗️ Build and Deploy
