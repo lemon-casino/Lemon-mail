@@ -9,6 +9,7 @@
                :time-sort="params.timeSort"
                :email-read="emailRead"
                :show-unread="true"
+               pagination
                actionLeft="4px"
                @jump="jumpContent"
   >
@@ -147,7 +148,7 @@ function cancelStar(email) {
   emailStore.starScroll?.deleteEmail([email.emailId])
 }
 
-function getEmailList(emailId, size) {
+function getEmailList(emailId, size, num) {
   if (!accountStore.currentAccountId || !accountStore.currentAccount?.email) {
     return Promise.resolve({
       list: [],
@@ -162,7 +163,7 @@ function getEmailList(emailId, size) {
 
   const accountId =  accountStore.currentAccountId;
   const allReceive = accountStore.currentAccount?.allReceive;
-  return emailList(accountId, allReceive, emailId, params.timeSort, size, 0).then(data => {
+  return emailList(accountId, allReceive, emailId, params.timeSort, size, 0, num).then(data => {
     data.latestEmail.reqAccountId = accountId;
     data.latestEmail.allReceive = allReceive;
     return data;

@@ -26,19 +26,21 @@ const emailService = {
 
 	async list(c, params, userId) {
 
-		let { emailId, type, accountId, size, timeSort, allReceive } = params;
+		let { emailId, type, accountId, size, timeSort, allReceive, num } = params;
 
 		size = Number(size);
 		emailId = Number(emailId);
 		timeSort = Number(timeSort);
 		accountId = Number(accountId);
 		allReceive = Number(allReceive);
+		num = Number(num);
+		const pageMode = !isNaN(num) && num > 0;
 
 		if (size > 50) {
 			size = 50;
 		}
 
-		if (!emailId) {
+		if (!pageMode && !emailId) {
 
 			if (timeSort) {
 				emailId = 0;
@@ -51,6 +53,18 @@ const emailService = {
 		if (isNaN(allReceive)) {
 			let accountRow = await accountService.selectById(c, accountId);
 			allReceive = accountRow.allReceive;
+		}
+
+		const conditions = [
+			allReceive ? eq(1,1) : eq(email.accountId, accountId),
+			eq(email.userId, userId),
+			eq(email.type, type),
+			eq(email.isDel, isDel.NORMAL),
+			eq(account.isDel, isDel.NORMAL)
+		];
+
+		if (!pageMode) {
+			conditions.push(timeSort ? gt(email.emailId, emailId) : lt(email.emailId, emailId));
 		}
 
 		const query = orm(c)
@@ -69,16 +83,7 @@ const emailService = {
 				account,
 				eq(account.accountId, email.accountId)
 			)
-			.where(
-				and(
-					allReceive ? eq(1,1) : eq(email.accountId, accountId),
-					eq(email.userId, userId),
-					timeSort ? gt(email.emailId, emailId) : lt(email.emailId, emailId),
-					eq(email.type, type),
-					eq(email.isDel, isDel.NORMAL),
-					eq(account.isDel, isDel.NORMAL)
-				)
-			);
+			.where(and(...conditions));
 
 		if (timeSort) {
 			query.orderBy(asc(email.emailId));
@@ -86,7 +91,7 @@ const emailService = {
 			query.orderBy(desc(email.emailId));
 		}
 
-		const listQuery = query.limit(size).all();
+		const listQuery = pageMode ? query.limit(size).offset((num - 1) * size).all() : query.limit(size).all();
 
 		const totalQuery = orm(c).select({ total: count() }).from(email)
 			.leftJoin(
