@@ -1,0 +1,232 @@
+@import "tailwindcss" layer(utilities);
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    scrollbar-width: thin;
+    scrollbar-color: var(--dark-border) transparent;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+  }
+
+  #app {
+    width: 100%;
+    height: 100%;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    line-height: 1.5;
+    color: var(--el-text-color-primary);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html, body {
+    background: var(--el-bg-color);
+  }
+
+  ul, ol {
+    list-style: none;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  button, input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    outline: none;
+    border: none;
+    background: none;
+  }
+
+  *:focus {
+    outline: none;
+  }
+}
+
+/* ── Element Plus overrides ── */
+.el-message {
+  white-space: nowrap !important;
+}
+
+.message-bottom {
+  top: auto !important;
+  bottom: 20px !important;
+
+  .el-icon {
+    display: none !important;
+  }
+}
+
+.el-input-group__append, .el-input-group__prepend {
+  color: var(--el-text-color-primary) !important;
+}
+
+.el-table thead th {
+  font-weight: bold !important;
+}
+
+:deep(.el-input__inner:focus) {
+  background-color: transparent !important;
+  border-color: #dcdfe6 !important;
+}
+
+/* TinyMCE overrides */
+.tox .tox-dialog__iframe.tox-dialog__iframe--opaque {
+  background-color: var(--el-bg-color) !important;
+}
+
+.tox .tox-dialog--width-lg {
+  height: 850px !important;
+  @media (max-width: 1024px) {
+    height: calc(100% - 40px) !important;
+  }
+}
+
+.tox .tox-dialog__body-content {
+  overflow: initial !important;
+  max-height: min(850px, calc(100vh - 110px)) !important;
+  @media (max-width: 1024px) {
+    box-sizing: initial !important;
+    max-height: min(850px, calc(100% - 40px)) !important;
+  }
+}
+
+.tox-dialog__body-content {
+  height: auto !important;
+  flex-basis: auto !important;
+}
+
+.tox .tox-collection--grid .tox-collection__group {
+  max-height: 220px !important;
+}
+
+/* ── Design System: Linear-inspired tokens ── */
+:root {
+  --el-color-primary: #6366f1;
+  --el-color-primary-dark-2: #4f46e5;
+  --el-color-primary-light-3: #818cf8;
+  --el-color-primary-light-5: #a5b4fc;
+  --el-color-primary-light-7: #c7d2fe;
+  --el-color-primary-light-9: #eef2ff;
+  --el-color-primary-light-8: #e0e7ff;
+
+  --xi-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+  --xi-gradient-hover: linear-gradient(135deg, #4f46e5, #7c3aed);
+  --xi-shadow-sm: 0 1px 2px rgba(99, 102, 241, 0.05);
+  --xi-shadow: 0 1px 3px rgba(99, 102, 241, 0.08), 0 1px 2px rgba(99, 102, 241, 0.06);
+  --xi-shadow-md: 0 4px 6px -1px rgba(99, 102, 241, 0.08), 0 2px 4px -2px rgba(99, 102, 241, 0.06);
+  --xi-shadow-lg: 0 10px 15px -3px rgba(99, 102, 241, 0.08), 0 4px 6px -4px rgba(99, 102, 241, 0.06);
+  --xi-shadow-card: 0 1px 3px rgba(99, 102, 241, 0.06), 0 0 0 1px rgba(99, 102, 241, 0.04);
+  --xi-shadow-card-hover: 0 8px 25px -5px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(99, 102, 241, 0.08);
+
+  --xi-radius: 10px;
+  --xi-radius-sm: 6px;
+  --xi-radius-lg: 14px;
+
+  --extra-light-fill: #f8f9fc;
+  --light-ill: #f3f4f8;
+  --light-border: #e5e7eb;
+  --header-actions-border: inset 0 -1px 0 0 var(--el-border-color-lighter);
+  --aside-backgound: #0f0f14;
+  --loadding-background: rgba(255, 255, 255, 0.8);
+  --dark-border: #d1d5db;
+  --base-fill: #f1f3f9;
+  --regular-text-color: #6b7280;
+  --light-border-color: #e5e7eb;
+  --aside-right-border: 0 0 15px rgba(99, 102, 241, 0.06);
+  --choose-account-background: var(--el-color-primary-light-8);
+  --el-text-color-regular: var(--el-text-color-primary);
+  --email-scroll-content-color: rgba(25, 41, 59, 0.4);
+  --email-hover-background: #f5f3ff;
+  --login-border: none;
+  --form-desc-color: #71717a;
+  --login-switch-color: #6366f1;
+  --scrollbar-track-color: #A8ABB2;
+  --base-border-color: #e5e7eb;
+  --secondary-text-color: #9ca3af;
+  --message-block-color: rgba(0, 0, 0, 0);
+  --loading-hide-transition: all 200ms;
+  --vt-x: 50%;
+  --vt-y: 50%;
+  --vt-duration: 520ms;
+  --vt-easing: ease-out;
+}
+
+.dark {
+  --extra-light-fill: #111114;
+  --light-ill: #1a1a1f;
+  --light-border: #2a2a30;
+  --aside-backgound: #0a0a0e;
+  --header-actions-border: inset 0 -1px 0 0 var(--el-border-color-lighter);
+  --loadding-background: rgba(0, 0, 0, 0.3);
+  --dark-border: #3f3f46;
+  --base-fill: #1e1e24;
+  --regular-text-color: #a1a1aa;
+  --light-border-color: #27272a;
+  --aside-right-border: 0 0 15px rgba(0, 0, 0, 0.3);
+  --choose-account-background: #27272a;
+  --email-scroll-content-color: rgba(255, 255, 255, 0.3);
+  --email-hover-background: #1e1b2e;
+  --login-border: none;
+  --form-desc-color: #8D9095;
+  --login-switch-color: #818cf8;
+  --scrollbar-track-color: #52525b;
+  --base-border-color: #3f3f46;
+  --secondary-text-color: #71717a;
+  --message-block-color: rgba(30, 30, 30, 0.2);
+  --el-border-color: #27272a !important;
+}
+
+.el-input {
+  --el-input-text-color: var(--el-text-color-primary) !important;
+}
+
+/* ── View transitions ── */
+html.dark,
+html:not(.dark) {
+  view-transition-name: root;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html[data-theme-to="dark"]::view-transition-new(root) { z-index: 2; }
+html[data-theme-to="dark"]::view-transition-old(root) { z-index: 1; }
+html[data-theme-to="light"]::view-transition-old(root) { z-index: 2; }
+html[data-theme-to="light"]::view-transition-new(root) { z-index: 1; }
+
+html[data-theme-to="dark"]::view-transition-new(root) {
+  clip-path: circle(0px at var(--vt-x) var(--vt-y));
+  animation: vt-radial-in var(--vt-duration) var(--vt-easing) forwards;
+}
+
+html[data-theme-to="light"]::view-transition-old(root) {
+  clip-path: circle(var(--vt-end-radius, 0px) at var(--vt-x) var(--vt-y));
+  animation: vt-radial-out var(--vt-duration) var(--vt-easing) forwards;
+}
+
+@keyframes vt-radial-in {
+  from { clip-path: circle(0px at var(--vt-x) var(--vt-y)); }
+  to   { clip-path: circle(var(--vt-end-radius, 0px) at var(--vt-x) var(--vt-y)); }
+}
+
+@keyframes vt-radial-out {
+  from { clip-path: circle(var(--vt-end-radius, 0px) at var(--vt-x) var(--vt-y)); }
+  to   { clip-path: circle(0px at var(--vt-x) var(--vt-y)); }
+}
