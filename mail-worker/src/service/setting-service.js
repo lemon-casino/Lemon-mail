@@ -1,7 +1,7 @@
 import KvConst from '../const/kv-const';
 import setting from '../entity/setting';
 import orm from '../entity/orm';
-import {verifyRecordType} from '../const/entity-const';
+import {settingConst, verifyRecordType} from '../const/entity-const';
 import fileUtils from '../utils/file-utils';
 import r2Service from './r2-service';
 import constant from '../const/constant';
@@ -78,6 +78,9 @@ const settingService = {
 		setting.emailPrefixFilter = setting.emailPrefixFilter.split(",").filter(Boolean);
 		setting.emailKeywordBlacklist = (setting.emailKeywordBlacklist || '').split(",").filter(Boolean);
 		setting.senderDomainBlacklist = (setting.senderDomainBlacklist || '').split(",").filter(Boolean);
+		if (setting.publicApiAdminDomain === undefined || setting.publicApiAdminDomain === null) {
+			setting.publicApiAdminDomain = settingConst.publicApiAdminDomain.CLOSE;
+		}
 		if (typeof setting.domainMapping === 'string') {
 			setting.domainMapping = JSON.parse(setting.domainMapping || '{}');
 		}
@@ -130,6 +133,13 @@ const settingService = {
 
 	async set(c, params) {
 		const settingData = await this.query(c);
+		if (Object.prototype.hasOwnProperty.call(params, 'publicApiAdminDomain')) {
+			if (params.publicApiAdminDomain !== settingData.publicApiAdminDomain) {
+				this.assertSuperAdmin(c);
+			} else {
+				delete params.publicApiAdminDomain;
+			}
+		}
 		let resendTokens = { ...settingData.resendTokens, ...params.resendTokens };
 		Object.keys(resendTokens).forEach(domain => {
 			if (!resendTokens[domain]) delete resendTokens[domain];

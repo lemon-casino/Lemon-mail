@@ -83,6 +83,18 @@
                              v-model="setting.addEmail"/>
                 </div>
               </div>
+              <div class="setting-item" v-if="superAdmin">
+                <div>
+                  <span>{{ $t('publicApiAdminDomain') }}</span>
+                  <el-tooltip effect="dark" :content="$t('publicApiAdminDomainDesc')">
+                    <Icon class="warning" icon="fe:warning" width="18" height="18"/>
+                  </el-tooltip>
+                </div>
+                <div>
+                  <el-switch @change="change" :before-change="beforeChange" :active-value="0" :inactive-value="1"
+                             v-model="setting.publicApiAdminDomain"/>
+                </div>
+              </div>
               <div class="setting-item">
                 <div>
                   <span>{{ $t('multipleEmail') }}</span>

@@ -13,6 +13,8 @@ const zh = {
     noMoreData: '没有更多数据了',
     noMessagesFound: '没有任何邮件',
     addAccount: '添加邮箱',
+    publicApiAdminDomain: 'API生成管理员域名',
+    publicApiAdminDomainDesc: '默认禁止 API 生成管理员登录邮箱同域名的地址，开启后 FlowPilot/Cloud Mail 才能生成该域名邮箱',
     emailAccount: '邮箱',
     account: '邮箱',
     userAccount: '用户邮箱',

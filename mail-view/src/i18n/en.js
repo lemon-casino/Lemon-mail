@@ -13,6 +13,8 @@ const en = {
     noMoreData: 'No more data',
     noMessagesFound: 'No messages found',
     addAccount: 'Add Email Address',
+    publicApiAdminDomain: 'API Admin Domain',
+    publicApiAdminDomainDesc: 'Public API generation for the administrator login domain is disabled by default. Enable this to let FlowPilot/Cloud Mail generate mailboxes under that domain.',
     emailAccount: 'Email',
     account: 'Address',
     userAccount: 'User Email Address',

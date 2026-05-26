@@ -64,6 +64,7 @@ const zh = {
 	publicTokenFail: 'token验证失败',
 	notAdmin: '输入的邮箱不是管理员邮箱',
 	emailExistDatabase: '有邮箱已存在数据库中',
+	publicApiAdminDomainDisabled: 'API 默认不允许生成管理员登录域名的邮箱，请先在系统设置中开启',
 	notConfigOss: '对象存储未配置',
 	cannotCreateHigherRole: '不能创建相同或高于自己权限级别的注册码',
 	emailKeywordBlocked: '邮箱名包含屏蔽关键词',

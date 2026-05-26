@@ -10,10 +10,11 @@ import verifyUtils from '../utils/verify-utils';
 import { t } from '../i18n/i18n';
 import reqUtils from '../utils/req-utils';
 import dayjs from 'dayjs';
-import { isDel, roleConst } from '../const/entity-const';
+import { isDel, roleConst, settingConst } from '../const/entity-const';
 import email from '../entity/email';
 import account from '../entity/account';
 import userService from './user-service';
+import settingService from './setting-service';
 import KvConst from '../const/kv-const';
 
 function normalizeEmail(value = '') {
@@ -39,6 +40,12 @@ function assertPublicEmailDomain(c, value) {
 	if (!normalizeDomainList(c).includes(domain)) {
 		throw new BizError(t('notEmailDomain'));
 	}
+}
+
+function isAdminLoginDomain(c, value) {
+	const adminDomain = emailUtils.getDomain(c.env.admin).toLowerCase();
+	const emailDomain = emailUtils.getDomain(value).toLowerCase();
+	return adminDomain && emailDomain === adminDomain;
 }
 
 function normalizeNumber(value, defaultValue) {
@@ -156,12 +163,19 @@ const publicService = {
 		if (!defRole) {
 			throw new BizError('Default role does not exist.');
 		}
+		const setting = await settingService.query(c);
 
 		const userList = [];
 
 		for (const emailRow of list) {
 			if (emailRow.skip) continue;
 			let { email, hash, salt, roleName } = emailRow;
+			if (
+				isAdminLoginDomain(c, email)
+				&& setting.publicApiAdminDomain !== settingConst.publicApiAdminDomain.OPEN
+			) {
+				throw new BizError(t('publicApiAdminDomainDisabled'), 403);
+			}
 			const existedUser = await userService.selectByEmailIncludeDel(c, email);
 			const existedAccount = await orm(c).select().from(account).where(sql`${account.email} COLLATE NOCASE = ${email}`).get();
 			if (existedUser && existedAccount && existedUser.isDel === isDel.NORMAL && existedAccount.isDel === isDel.NORMAL) {

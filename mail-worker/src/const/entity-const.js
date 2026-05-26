@@ -131,6 +131,10 @@ export const settingConst = {
 	authRefresh: {
 		OPEN: 1,
 		CLOSE: 0
+	},
+	publicApiAdminDomain: {
+		OPEN: 0,
+		CLOSE: 1
 	}
 }
 

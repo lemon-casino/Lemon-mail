@@ -64,6 +64,7 @@ const en = {
 	publicTokenFail: 'Token validation failed',
 	notAdmin: 'The entered email is not an administrator email',
 	emailExistDatabase: 'Email already exists in the database',
+	publicApiAdminDomainDisabled: 'The public API is not allowed to generate mailboxes under the administrator login domain by default. Enable it in system settings first.',
 	notConfigOss: 'Object storage not configured',
 	cannotCreateHigherRole: 'Cannot create invite code for same or higher permission level',
 	emailKeywordBlocked: 'Email address contains a blocked keyword',
