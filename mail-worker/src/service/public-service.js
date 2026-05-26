@@ -15,6 +15,7 @@ import email from '../entity/email';
 import account from '../entity/account';
 import userService from './user-service';
 import settingService from './setting-service';
+import accountStorageService from './account-storage-service';
 import KvConst from '../const/kv-const';
 
 function normalizeEmail(value = '') {
@@ -51,6 +52,66 @@ function isAdminLoginDomain(c, value) {
 function normalizeNumber(value, defaultValue) {
 	const num = Number(value);
 	return Number.isFinite(num) ? num : defaultValue;
+}
+
+async function addUserAccountFromPublicApi(c, email, ownerUser, setting) {
+	if (!ownerUser || ownerUser.isDel === isDel.DELETE) {
+		throw new BizError(t('notExistUser'));
+	}
+	if (!(setting.addEmail === settingConst.addEmail.OPEN && setting.manyEmail === settingConst.manyEmail.OPEN)) {
+		throw new BizError(t('addAccountDisabled'));
+	}
+	if (emailUtils.getName(email).length < setting.minEmailPrefix) {
+		throw new BizError(t('minEmailPrefix', { msg: setting.minEmailPrefix }));
+	}
+	if (setting.emailPrefixFilter.some(content => emailUtils.getName(email).includes(content))) {
+		throw new BizError(t('banEmailPrefix'));
+	}
+	if (ownerUser.email !== c.env.admin && !ownerUser.addEmailEnabled) {
+		throw new BizError(t('addEmailDisabledForUser'), 403);
+	}
+	if (setting.emailKeywordBlacklist.length > 0 && ownerUser.email !== c.env.admin) {
+		const emailName = emailUtils.getName(email).toLowerCase();
+		if (setting.emailKeywordBlacklist.some(kw => emailName.includes(kw.toLowerCase()))) {
+			throw new BizError(t('emailKeywordBlocked'));
+		}
+	}
+	const roleRow = await roleService.selectById(c, ownerUser.type);
+	if (ownerUser.email !== c.env.admin) {
+		if (roleRow.accountCount > 0) {
+			const { num } = await orm(c).select({ num: sql`COUNT(*)` }).from(account)
+				.where(and(eq(account.userId, ownerUser.userId), eq(account.isDel, isDel.NORMAL)))
+				.get();
+			if (Number(num) >= roleRow.accountCount) throw new BizError(t('accountLimit'), 403);
+		}
+		if (!roleService.hasAvailDomainPerm(roleRow.availDomain, email)) {
+			throw new BizError(t('noDomainPermAdd'), 403);
+		}
+	}
+
+	const existedAccount = await orm(c).select().from(account).where(sql`${account.email} COLLATE NOCASE = ${email}`).get();
+	if (existedAccount && existedAccount.isDel === isDel.NORMAL) {
+		return;
+	}
+	if (existedAccount) {
+		throw new BizError(t('emailExistDatabase'));
+	}
+
+	const row = await orm(c).select({ maxSort: sql`COALESCE(MAX(${account.sort}), 0)` })
+		.from(account)
+		.where(and(
+			eq(account.userId, ownerUser.userId),
+			eq(account.isDel, isDel.NORMAL),
+		))
+		.get();
+	const sort = Number(row?.maxSort || 0) + 1;
+	const accountRow = await orm(c).insert(account).values({
+		email,
+		name: emailUtils.getName(email),
+		userId: ownerUser.userId,
+		sort,
+	}).returning().get();
+	await accountStorageService.keepNewAccountVisible(c, ownerUser.userId, accountRow, ownerUser.userId);
 }
 
 const publicService = {
@@ -164,6 +225,9 @@ const publicService = {
 			throw new BizError('Default role does not exist.');
 		}
 		const setting = await settingService.query(c);
+		const publicUser = c.get?.('publicUser')?.userId
+			? await userService.selectById(c, c.get('publicUser').userId)
+			: null;
 
 		const userList = [];
 
@@ -171,10 +235,23 @@ const publicService = {
 			if (emailRow.skip) continue;
 			let { email, hash, salt, roleName } = emailRow;
 			if (
+				publicUser
+				&& !(
+					publicUser.email === c.env.admin
+					&& isAdminLoginDomain(c, email)
+					&& setting.publicApiAdminDomain === settingConst.publicApiAdminDomain.OPEN
+				)
+			) {
+				await addUserAccountFromPublicApi(c, email, publicUser, setting);
+				continue;
+			}
+			if (
 				isAdminLoginDomain(c, email)
 				&& setting.publicApiAdminDomain !== settingConst.publicApiAdminDomain.OPEN
 			) {
-				throw new BizError(t('publicApiAdminDomainDisabled'), 403);
+				const adminUser = await userService.selectByEmailIncludeDel(c, normalizeEmail(c.env.admin));
+				await addUserAccountFromPublicApi(c, email, adminUser, setting);
+				continue;
 			}
 			const existedUser = await userService.selectByEmailIncludeDel(c, email);
 			const existedAccount = await orm(c).select().from(account).where(sql`${account.email} COLLATE NOCASE = ${email}`).get();
@@ -234,11 +311,17 @@ const publicService = {
 
 	async genToken(c, params) {
 
-		await this.verifyUser(c, params)
+		const userRow = await this.verifyUser(c, params)
 
 		const uuid = uuidv4();
 
 		await c.env.kv.put(KvConst.PUBLIC_KEY, uuid);
+		await c.env.kv.put(KvConst.PUBLIC_AUTH + uuid, JSON.stringify({
+			userId: userRow.userId,
+			email: userRow.email,
+			type: userRow.type,
+			addEmailEnabled: userRow.addEmailEnabled,
+		}), { expirationTtl: 60 * 60 * 24 * 30 });
 
 		return {token: uuid}
 	},
@@ -249,10 +332,6 @@ const publicService = {
 
 		const userRow = await userService.selectByEmailIncludeDel(c, email);
 
-		if (email !== c.env.admin) {
-			throw new BizError(t('notAdmin'));
-		}
-
 		if (!userRow || userRow.isDel === isDel.DELETE) {
 			throw new BizError(t('notExistUser'));
 		}
@@ -260,6 +339,8 @@ const publicService = {
 		if (!await cryptoUtils.verifyPassword(password, userRow.salt, userRow.password)) {
 			throw new BizError(t('IncorrectPwd'));
 		}
+
+		return userRow;
 	}
 
 }

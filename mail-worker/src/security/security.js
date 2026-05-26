@@ -112,8 +112,17 @@ app.use('*', async (c, next) => {
 
 	if (path.startsWith('/public')) {
 
-		const userPublicToken = await c.env.kv.get(KvConst.PUBLIC_KEY);
 		const publicToken = c.req.header(constant.TOKEN_HEADER);
+		const publicAuth = publicToken
+			? await c.env.kv.get(KvConst.PUBLIC_AUTH + publicToken, { type: 'json' })
+			: null;
+		if (publicAuth?.userId) {
+			c.set('publicUser', publicAuth);
+			c.set('user', publicAuth);
+			return await next();
+		}
+
+		const userPublicToken = await c.env.kv.get(KvConst.PUBLIC_KEY);
 		if (publicToken !== userPublicToken) {
 			throw new BizError(t('publicTokenFail'), 401);
 		}
