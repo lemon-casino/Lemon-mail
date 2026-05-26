@@ -12,14 +12,45 @@ import reqUtils from '../utils/req-utils';
 import dayjs from 'dayjs';
 import { isDel, roleConst } from '../const/entity-const';
 import email from '../entity/email';
+import account from '../entity/account';
 import userService from './user-service';
 import KvConst from '../const/kv-const';
 
+function normalizeEmail(value = '') {
+	return String(value || '').trim().toLowerCase();
+}
+
+function normalizeDomainList(c) {
+	let domainList = c.env.domain;
+	if (typeof domainList === 'string') {
+		try {
+			domainList = JSON.parse(domainList);
+		} catch {
+			domainList = domainList.split(',');
+		}
+	}
+	return Array.isArray(domainList)
+		? domainList.map(item => String(item || '').trim().toLowerCase()).filter(Boolean)
+		: [];
+}
+
+function assertPublicEmailDomain(c, value) {
+	const domain = emailUtils.getDomain(value).toLowerCase();
+	if (!normalizeDomainList(c).includes(domain)) {
+		throw new BizError(t('notEmailDomain'));
+	}
+}
+
+function normalizeNumber(value, defaultValue) {
+	const num = Number(value);
+	return Number.isFinite(num) ? num : defaultValue;
+}
+
 const publicService = {
 
-	async emailList(c, params) {
+	async emailList(c, params = {}) {
 
-		let { toEmail, content, subject, sendName, sendEmail, timeSort, num, size, type , isDel } = params
+		let { toEmail, content, subject, sendName, sendEmail, timeSort, num, size, type , isDel: delStatus } = params
 
 		const query = orm(c).select({
 				emailId: email.emailId,
@@ -35,27 +66,18 @@ const publicService = {
 				isDel: email.isDel,
 		}).from(email)
 
-		if (!size) {
-			size = 20
-		}
-
-		if (!num) {
-			num = 1
-		}
-
-		size = Number(size);
-		num = Number(num);
-
-		num = (num - 1) * size;
+		size = Math.min(Math.max(normalizeNumber(size, 20), 1), 100);
+		num = Math.max(normalizeNumber(num, 1), 1);
+		const offset = (num - 1) * size;
 
 		let conditions = []
 
 		if (toEmail) {
-			conditions.push(sql`${email.toEmail} COLLATE NOCASE LIKE ${toEmail}`)
+			conditions.push(sql`${email.toEmail} COLLATE NOCASE = ${normalizeEmail(toEmail)}`)
 		}
 
 		if (sendEmail) {
-			conditions.push(sql`${email.sendEmail} COLLATE NOCASE LIKE ${sendEmail}`)
+			conditions.push(sql`${email.sendEmail} COLLATE NOCASE = ${normalizeEmail(sendEmail)}`)
 		}
 
 		if (sendName) {
@@ -70,12 +92,14 @@ const publicService = {
 			conditions.push(sql`${email.content} COLLATE NOCASE LIKE ${content}`)
 		}
 
-		if (type || type === 0) {
-			conditions.push(eq(email.type, type))
+		const typeNumber = Number(type);
+		if (!Number.isNaN(typeNumber)) {
+			conditions.push(eq(email.type, typeNumber))
 		}
 
-		if (isDel || isDel === 0) {
-			conditions.push(eq(email.isDel, isDel))
+		const delNumber = Number(delStatus);
+		if (!Number.isNaN(delNumber)) {
+			conditions.push(eq(email.isDel, delNumber))
 		}
 
 		if (conditions.length === 1) {
@@ -90,23 +114,29 @@ const publicService = {
 			query.orderBy(desc(email.emailId));
 		}
 
-		return query.limit(size).offset(num);
+		return query.limit(size).offset(offset);
 
 	},
 
-	async addUser(c, params) {
-		const { list } = params;
+	async addUser(c, params = {}) {
+		const list = Array.isArray(params?.list) ? params.list : [];
 
 		if (list.length === 0) return;
 
+		const seenEmails = new Set();
 		for (const emailRow of list) {
+			emailRow.email = normalizeEmail(emailRow.email);
+
 			if (!verifyUtils.isEmail(emailRow.email)) {
 				throw new BizError(t('notEmail'));
 			}
-
-			if (!c.env.domain.includes(emailUtils.getDomain(emailRow.email))) {
-				throw new BizError(t('notEmailDomain'));
+			if (seenEmails.has(emailRow.email)) {
+				emailRow.skip = true;
+				continue;
 			}
+			seenEmails.add(emailRow.email);
+
+			assertPublicEmailDomain(c, emailRow.email);
 
 			const { salt, hash } = await saltHashUtils.hashPassword(
 				emailRow.password || cryptoUtils.genRandomPwd()
@@ -123,11 +153,24 @@ const publicService = {
 
 		const roleList = await roleService.roleSelectUse(c);
 		const defRole = roleList.find(roleRow => roleRow.isDefault === roleConst.isDefault.OPEN);
+		if (!defRole) {
+			throw new BizError('Default role does not exist.');
+		}
 
 		const userList = [];
 
 		for (const emailRow of list) {
+			if (emailRow.skip) continue;
 			let { email, hash, salt, roleName } = emailRow;
+			const existedUser = await userService.selectByEmailIncludeDel(c, email);
+			const existedAccount = await orm(c).select().from(account).where(sql`${account.email} COLLATE NOCASE = ${email}`).get();
+			if (existedUser && existedAccount && existedUser.isDel === isDel.NORMAL && existedAccount.isDel === isDel.NORMAL) {
+				continue;
+			}
+			if (existedUser || existedAccount) {
+				throw new BizError(t('emailExistDatabase'));
+			}
+
 			let type = defRole.roleId;
 
 			if (roleName) {
@@ -135,21 +178,36 @@ const publicService = {
 				type = roleRow ? roleRow.roleId : type;
 			}
 
-			const userSql = `INSERT INTO user (email, password, salt, type, os, browser, active_ip, create_ip, device, active_time, create_time)
-			VALUES ('${email}', '${hash}', '${salt}', '${type}', '${os}', '${browser}', '${activeIp}', '${activeIp}', '${device}', '${activeTime}', '${activeTime}')`
-
-			const accountSql = `INSERT INTO account (email, name, user_id)
-			VALUES ('${email}', '${emailUtils.getName(email)}', 0);`;
-
-			userList.push(c.env.db.prepare(userSql));
-			userList.push(c.env.db.prepare(accountSql));
+			userList.push({
+				email,
+				password: hash,
+				salt,
+				type,
+				os,
+				browser,
+				activeIp,
+				createIp: activeIp,
+				device,
+				activeTime,
+				createTime: activeTime,
+			});
+			userList.push({ email });
 
 		}
 
-		userList.push(c.env.db.prepare(`UPDATE account SET user_id = (SELECT user_id FROM user WHERE user.email = account.email) WHERE user_id = 0;`))
-
 		try {
-			await c.env.db.batch(userList);
+			for (const item of userList) {
+				if (item?.password) {
+					await userService.insert(c, item);
+				} else if (item?.email) {
+					const userRow = await userService.selectByEmailIncludeDel(c, item.email);
+					await orm(c).insert(account).values({
+						email: item.email,
+						name: emailUtils.getName(item.email),
+						userId: userRow.userId,
+					}).run();
+				}
+			}
 		} catch (e) {
 			if(e.message.includes('SQLITE_CONSTRAINT')) {
 				throw new BizError(t('emailExistDatabase'))
