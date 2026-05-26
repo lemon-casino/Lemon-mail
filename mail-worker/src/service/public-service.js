@@ -36,9 +36,32 @@ function normalizeDomainList(c) {
 		: [];
 }
 
-function assertPublicEmailDomain(c, value) {
+async function publicDomainList(c, setting = null, publicUser = null) {
+	const settingRow = setting || await settingService.query(c);
+	let domains = normalizeDomainList(c);
+	const adminDomain = emailUtils.getDomain(c.env.admin).toLowerCase();
+	if (adminDomain && settingRow.publicApiAdminDomain !== settingConst.publicApiAdminDomain.OPEN) {
+		domains = domains.filter(domain => domain !== adminDomain);
+	}
+
+	if (publicUser && publicUser.email !== c.env.admin) {
+		const roleRow = await roleService.selectById(c, publicUser.type);
+		const roleDomains = String(roleRow?.availDomain || '')
+			.split(',')
+			.map(item => item.trim().toLowerCase())
+			.filter(Boolean);
+		if (roleDomains.length > 0) {
+			domains = domains.filter(domain => roleDomains.includes(domain));
+		}
+	}
+
+	return domains;
+}
+
+async function assertPublicEmailDomain(c, value, setting = null, publicUser = null) {
 	const domain = emailUtils.getDomain(value).toLowerCase();
-	if (!normalizeDomainList(c).includes(domain)) {
+	const domains = await publicDomainList(c, setting, publicUser);
+	if (!domains.includes(domain)) {
 		throw new BizError(t('notEmailDomain'));
 	}
 }
@@ -191,6 +214,10 @@ const publicService = {
 
 		if (list.length === 0) return;
 
+		const setting = await settingService.query(c);
+		const publicUser = c.get?.('publicUser')?.userId
+			? await userService.selectById(c, c.get('publicUser').userId)
+			: null;
 		const seenEmails = new Set();
 		for (const emailRow of list) {
 			emailRow.email = normalizeEmail(emailRow.email);
@@ -204,7 +231,7 @@ const publicService = {
 			}
 			seenEmails.add(emailRow.email);
 
-			assertPublicEmailDomain(c, emailRow.email);
+			await assertPublicEmailDomain(c, emailRow.email, setting, publicUser);
 
 			const { salt, hash } = await saltHashUtils.hashPassword(
 				emailRow.password || cryptoUtils.genRandomPwd()
@@ -224,10 +251,6 @@ const publicService = {
 		if (!defRole) {
 			throw new BizError('Default role does not exist.');
 		}
-		const setting = await settingService.query(c);
-		const publicUser = c.get?.('publicUser')?.userId
-			? await userService.selectById(c, c.get('publicUser').userId)
-			: null;
 
 		const userList = [];
 
@@ -307,6 +330,14 @@ const publicService = {
 			}
 		}
 
+	},
+
+	async domainList(c) {
+		const publicUser = c.get?.('publicUser')?.userId
+			? await userService.selectById(c, c.get('publicUser').userId)
+			: null;
+		const domains = await publicDomainList(c, null, publicUser);
+		return domains.map(domain => `@${domain}`);
 	},
 
 	async genToken(c, params) {
