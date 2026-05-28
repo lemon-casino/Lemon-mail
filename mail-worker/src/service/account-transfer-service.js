@@ -2,7 +2,7 @@ import BizError from '../error/biz-error';
 import orm from '../entity/orm';
 import accountTransfer from '../entity/account-transfer';
 import account from '../entity/account';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { t } from '../i18n/i18n';
 import userService from './user-service';
@@ -89,7 +89,10 @@ const accountTransferService = {
         const transferRow = await orm(c).select().from(accountTransfer)
             .where(and(
                 eq(accountTransfer.transferId, transferId),
-                eq(accountTransfer.toUserId, userId),
+                or(
+                    eq(accountTransfer.toUserId, userId),
+                    eq(accountTransfer.fromUserId, userId)
+                ),
                 eq(accountTransfer.status, 0)
             )).get();
 

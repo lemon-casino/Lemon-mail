@@ -89,7 +89,10 @@
                   <Icon icon="mingcute:check-line" width="14" height="14" style="margin-right:4px"/>
                   {{ $t('acceptTransfer') }}
                 </el-button>
-                <el-button size="small" plain @click="doReject(item)">{{ $t('rejectTransfer') }}</el-button>
+                <el-button size="small" plain @click="doReject(item, 'incoming')">
+                  <Icon icon="mingcute:close-line" width="14" height="14" style="margin-right:4px"/>
+                  {{ $t('rejectTransfer') }}
+                </el-button>
               </div>
             </div>
           </div>
@@ -119,13 +122,24 @@
                   <div class="card-time">{{ tzDayjs(item.createTime).format('YYYY-MM-DD HH:mm') }}</div>
                 </div>
               </div>
-              <el-tag
-                :type="item.status === 0 ? 'warning' : item.status === 1 ? 'success' : 'info'"
-                size="small"
-                round
-              >
-                {{ $t('transferStatus' + item.status) }}
-              </el-tag>
+              <div class="card-status-actions">
+                <el-tag
+                  :type="item.status === 0 ? 'warning' : item.status === 1 ? 'success' : 'info'"
+                  size="small"
+                  round
+                >
+                  {{ $t('transferStatus' + item.status) }}
+                </el-tag>
+                <el-button
+                  v-if="item.status === 0"
+                  size="small"
+                  plain
+                  @click="doReject(item, 'sent')"
+                >
+                  <Icon icon="mingcute:close-line" width="14" height="14" style="margin-right:4px"/>
+                  {{ $t('rejectTransfer') }}
+                </el-button>
+              </div>
             </div>
           </div>
         </div>
@@ -221,11 +235,17 @@ async function doAccept(item) {
   loadMyAccounts()
 }
 
-async function doReject(item) {
+async function doReject(item, type = 'incoming') {
   await transferReject(item.transferId)
   ElMessage({ message: t('transferRejectSuccess'), type: 'success', plain: true })
-  incomingTransfers.value = incomingTransfers.value.filter(i => i.transferId !== item.transferId)
-  transferStore.pendingCount = incomingTransfers.value.length
+  if (type === 'sent') {
+    sentTransfers.value = sentTransfers.value.map(i =>
+      i.transferId === item.transferId ? { ...i, status: 2 } : i
+    )
+  } else {
+    incomingTransfers.value = incomingTransfers.value.filter(i => i.transferId !== item.transferId)
+    transferStore.pendingCount = incomingTransfers.value.length
+  }
 }
 
 onMounted(() => {
@@ -395,6 +415,14 @@ onMounted(() => {
   .card-actions {
     display: flex;
     gap: 6px;
+    flex-shrink: 0;
+    margin-left: 12px;
+  }
+
+  .card-status-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     flex-shrink: 0;
     margin-left: 12px;
   }
