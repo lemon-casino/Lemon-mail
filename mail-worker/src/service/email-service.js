@@ -532,6 +532,51 @@ const emailService = {
 			.get();
 	},
 
+	async detail(c, params, userId) {
+		let { emailId } = params;
+		emailId = Number(emailId);
+
+		if (!emailId) {
+			throw new BizError(t('emailNotFound'), 404);
+		}
+
+		const emailRow = await orm(c)
+			.select({
+				...email,
+				starId: star.starId
+			})
+			.from(email)
+			.leftJoin(
+				star,
+				and(
+					eq(star.emailId, email.emailId),
+					eq(star.userId, userId)
+				)
+			)
+			.leftJoin(
+				account,
+				eq(account.accountId, email.accountId)
+			)
+			.where(
+				and(
+					eq(email.emailId, emailId),
+					eq(email.userId, userId),
+					eq(email.isDel, isDel.NORMAL),
+					eq(account.isDel, isDel.NORMAL),
+					ne(email.status, emailConst.status.SAVING)
+				)
+			)
+			.get();
+
+		if (!emailRow) {
+			throw new BizError(t('emailNotFound'), 404);
+		}
+
+		emailRow.isStar = emailRow.starId != null ? 1 : 0;
+		await this.emailAddAtt(c, [emailRow]);
+		return emailRow;
+	},
+
 	async latest(c, params, userId) {
 		let { emailId, accountId, allReceive } = params;
 		allReceive = Number(allReceive);
@@ -724,6 +769,32 @@ const emailService = {
 		}
 
 		return { list: list, total: totalRow.total, latestEmail };
+	},
+
+	async allDetail(c, params) {
+		let { emailId } = params;
+		emailId = Number(emailId);
+
+		if (!emailId) {
+			throw new BizError(t('emailNotFound'), 404);
+		}
+
+		const emailRow = await orm(c)
+			.select({ ...email, userEmail: user.email })
+			.from(email)
+			.leftJoin(user, eq(email.userId, user.userId))
+			.where(and(
+				eq(email.emailId, emailId),
+				ne(email.status, emailConst.status.SAVING)
+			))
+			.get();
+
+		if (!emailRow) {
+			throw new BizError(t('emailNotFound'), 404);
+		}
+
+		await this.emailAddAtt(c, [emailRow]);
+		return emailRow;
 	},
 
 	async allEmailLatest(c, params) {

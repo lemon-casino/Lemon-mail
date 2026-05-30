@@ -74,6 +74,7 @@ function jumpContent(email) {
   router.push({
     path: '/message',
     query: {
+      emailId: email.emailId,
       storageScope: 'inbox'
     }
   })

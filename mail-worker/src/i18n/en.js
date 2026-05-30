@@ -23,6 +23,7 @@ const en = {
 	noResendToken: 'Resend API token not configured',
 	sendEmailNotCurUser: 'Sender email does not belong to current user',
 	notExistEmailReply: 'Mail does not exist and cannot be replied to',
+	emailNotFound: 'Email not found',
 	imageAttLimit: 'The maximum number of image attachments is 10',
 	attLimit: 'The maximum number of attachments is 10.',
 	pwdLengthLimit: 'Password length exceeds the limit',

@@ -116,9 +116,23 @@ router.beforeEach((to, from, next) => {
         return next(from.path)
     }
 
+    if (to.name === 'content' && !to.query.emailId) {
+        return next({
+            path: getMessageFallbackPath(to.query.storageScope),
+            replace: true
+        })
+    }
+
     next()
 
 })
+
+function getMessageFallbackPath(storageScope) {
+    if (storageScope === 'sent') return '/sent'
+    if (storageScope === 'star') return '/starred'
+    if (storageScope === 'all') return '/all-mail'
+    return '/inbox'
+}
 
 function loadBackground(next) {
 

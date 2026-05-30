@@ -1,5 +1,5 @@
 <template>
-  <div class="box">
+  <div v-if="email" class="box" v-loading="loading">
     <div class="header-actions">
       <Icon class="icon" icon="material-symbols-light:arrow-back-ios-new" width="20" height="20" @click="handleBack"/>
       <Icon v-perm="'email:delete'" class="icon" icon="uiw:delete" width="16" height="16" @click="handleDelete"/>
@@ -76,9 +76,9 @@
 <script setup>
 import ShadowHtml from '@/components/shadow-html/index.vue'
 import {reactive, ref, watch, onMounted, onUnmounted} from "vue";
-import {useRouter} from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {emailDelete, emailRead} from "@/request/email.js";
+import {emailDelete, emailDetail, emailRead} from "@/request/email.js";
 import {Icon} from "@iconify/vue";
 import {useEmailStore} from "@/store/email.js";
 import {useAccountStore} from "@/store/account.js";
@@ -88,7 +88,7 @@ import {getExtName, formatBytes} from "@/utils/file-utils.js";
 import {cvtR2Url,toOssDomain} from "@/utils/convert.js";
 import {getIconByName} from "@/utils/icon-utils.js";
 import {useSettingStore} from "@/store/setting.js";
-import {allEmailDelete} from "@/request/all-email.js";
+import {allEmailDelete, allEmailDetail} from "@/request/all-email.js";
 import {useUiStore} from "@/store/ui.js";
 import {useI18n} from "vue-i18n";
 import {EmailUnreadEnum} from "@/enums/email-enum.js";
@@ -98,36 +98,137 @@ const settingStore = useSettingStore();
 const accountStore = useAccountStore();
 const emailStore = useEmailStore();
 const router = useRouter()
-const email = emailStore.contentData.email
+const route = useRoute()
+const email = ref(null)
+const loading = ref(false)
 const showPreview = ref(false)
 const srcList = reactive([])
 
 const { t } = useI18n()
+
 watch(() => accountStore.currentAccountId, () => {
   handleBack()
 })
 
+watch(() => route.query.emailId, () => {
+  loadEmail()
+})
+
+watch(() => route.query.storageScope, () => {
+  applyRouteOptions()
+})
+
 onMounted(() => {
-  if (emailStore.contentData.showUnread && email.unread === EmailUnreadEnum.UNREAD) {
-    email.unread = EmailUnreadEnum.READ;
-    emailRead([email.emailId]);
-  }
+  loadEmail()
 })
 
 onUnmounted(() => {
   emailStore.contentData.showUnread = false;
 })
 
+async function loadEmail() {
+  const emailId = getRouteEmailId();
+
+  if (!emailId) {
+    email.value = null;
+    router.replace(getBackRoute());
+    return;
+  }
+
+  applyRouteOptions();
+
+  const cachedEmail = emailStore.contentData.email;
+  if (cachedEmail && Number(cachedEmail.emailId) === emailId) {
+    setEmail(cachedEmail);
+    markUnread();
+    return;
+  }
+
+  loading.value = true;
+  try {
+    const detail = route.query.storageScope === 'all'
+        ? await allEmailDetail(emailId)
+        : await emailDetail(emailId);
+
+    if (getRouteEmailId() !== emailId) {
+      return;
+    }
+
+    setEmail(detail);
+    markUnread();
+  } catch (e) {
+    console.error(e);
+    if (getRouteEmailId() === emailId) {
+      email.value = null;
+      router.replace(getBackRoute());
+    }
+  } finally {
+    if (getRouteEmailId() === emailId) {
+      loading.value = false;
+    }
+  }
+}
+
+function getRouteEmailId() {
+  const emailId = Number(route.query.emailId);
+  return Number.isFinite(emailId) ? emailId : 0;
+}
+
+function setEmail(emailRow) {
+  if (!emailRow) {
+    email.value = null;
+    return;
+  }
+
+  const normalizedEmail = {
+    ...emailRow,
+    recipient: emailRow.recipient || '[]',
+    attList: Array.isArray(emailRow.attList) ? emailRow.attList : []
+  };
+  email.value = normalizedEmail;
+  emailStore.contentData.email = normalizedEmail;
+}
+
+function applyRouteOptions() {
+  const storageScope = route.query.storageScope;
+  emailStore.contentData.delType = storageScope === 'all' ? 'physics' : 'logic';
+  emailStore.contentData.showStar = storageScope !== 'all';
+  emailStore.contentData.showReply = storageScope !== 'all';
+  emailStore.contentData.showUnread = storageScope === 'inbox';
+}
+
+function markUnread() {
+  const currentEmail = email.value;
+  if (emailStore.contentData.showUnread && currentEmail?.unread === EmailUnreadEnum.UNREAD) {
+    currentEmail.unread = EmailUnreadEnum.READ;
+    emailRead([currentEmail.emailId]).catch(console.error);
+  }
+}
+
+function getBackRoute() {
+  if (route.query.storageScope === 'sent') return '/sent';
+  if (route.query.storageScope === 'star') return '/starred';
+  if (route.query.storageScope === 'all') return '/all-mail';
+  return '/inbox';
+}
+
 function openReply() {
-  uiStore.writerRef.openReply(email)
+  if (!email.value) return;
+  uiStore.writerRef.openReply(email.value)
 }
 
 function openForward() {
-  uiStore.writerRef.openForward(email)
+  if (!email.value) return;
+  uiStore.writerRef.openForward(email.value)
 }
 
 function toMessage(message) {
-  return  message ? JSON.parse(message).message : '';
+  if (!message) return '';
+  try {
+    return JSON.parse(message).message || message;
+  } catch {
+    return message;
+  }
 }
 
 function formatImage(content) {
@@ -149,68 +250,82 @@ function isImage(filename) {
 }
 
 function formateReceive(recipient) {
-  recipient = JSON.parse(recipient)
-  return recipient.map(item => item.address).join(', ')
+  try {
+    const list = JSON.parse(recipient || '[]');
+    return Array.isArray(list) ? list.map(item => item.address).join(', ') : '';
+  } catch {
+    return '';
+  }
 }
 
 function changeStar() {
-  if (email.isStar) {
-    email.isStar = 0;
-    starCancel(email.emailId).then(() => {
-      email.isStar = 0;
-      emailStore.cancelStarEmailId = email.emailId
+  const currentEmail = email.value;
+  if (!currentEmail) return;
+
+  if (currentEmail.isStar) {
+    currentEmail.isStar = 0;
+    starCancel(currentEmail.emailId).then(() => {
+      currentEmail.isStar = 0;
+      emailStore.cancelStarEmailId = currentEmail.emailId
       setTimeout(() => emailStore.cancelStarEmailId = 0)
-      emailStore.starScroll?.deleteEmail([email.emailId])
+      emailStore.starScroll?.deleteEmail([currentEmail.emailId])
     }).catch((e) => {
       console.error(e)
-      email.isStar = 1;
+      currentEmail.isStar = 1;
     })
   } else {
-    email.isStar = 1;
-    starAdd(email.emailId).then(() => {
-      email.isStar = 1;
-      emailStore.addStarEmailId = email.emailId
+    currentEmail.isStar = 1;
+    starAdd(currentEmail.emailId).then(() => {
+      currentEmail.isStar = 1;
+      emailStore.addStarEmailId = currentEmail.emailId
       setTimeout(() => emailStore.addStarEmailId = 0)
-      emailStore.starScroll?.addItem(email)
+      emailStore.starScroll?.addItem(currentEmail)
     }).catch((e) => {
       console.error(e)
-      email.isStar = 0;
+      currentEmail.isStar = 0;
     })
   }
 }
 
 const handleBack = () => {
-  router.back()
+  if (window.history.state?.back) {
+    router.back()
+  } else {
+    router.push(getBackRoute())
+  }
 }
 
 const handleDelete = () => {
+  const currentEmail = email.value;
+  if (!currentEmail) return;
+
   ElMessageBox.confirm(t('delEmailConfirm'), {
     confirmButtonText: t('confirm'),
     cancelButtonText: t('cancel'),
     type: 'warning'
   }).then(() => {
     if (emailStore.contentData.delType === 'logic') {
-      emailDelete(email.emailId).then(() => {
+      emailDelete(currentEmail.emailId).then(() => {
         ElMessage({
           message: t('delSuccessMsg'),
           type: 'success',
           plain: true,
         })
-        emailStore.deleteIds = [email.emailId]
+        emailStore.deleteIds = [currentEmail.emailId]
       })
     } else  {
 
-      allEmailDelete(email.emailId).then(() => {
+      allEmailDelete(currentEmail.emailId).then(() => {
         ElMessage({
           message: t('delSuccessMsg'),
           type: 'success',
           plain: true,
         })
-        emailStore.deleteIds = [email.emailId]
+        emailStore.deleteIds = [currentEmail.emailId]
       })
     }
 
-    router.back()
+    handleBack()
   })
 }
 </script>
