@@ -58,6 +58,7 @@ const en = {
 	bannedSend: 'You can only send emails to internal mailboxes',
 	onlyInternalSend: 'Your current role allows sending internal emails only',
 	noDomainPermAdd: "No permission to add this domain email",
+	ownDomainExcluded: "Own-domain exclusion is on: emails cannot be created on the same domain as your login email",
 	noDomainPermReg: "No permission to register this domain email",
 	noDomainPermRegKey: "Registration code not valid for this domain",
 	noDomainPermSend: "No permission to send from this domain email",

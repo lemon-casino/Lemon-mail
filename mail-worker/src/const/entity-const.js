@@ -94,6 +94,10 @@ export const settingConst = {
 		OPEN: 0,
 		CLOSE: 1,
 	},
+	excludeOwnDomain: {
+		OPEN: 1,
+		CLOSE: 0,
+	},
 	registerVerify: {
 		OPEN: 0,
 		CLOSE: 1,

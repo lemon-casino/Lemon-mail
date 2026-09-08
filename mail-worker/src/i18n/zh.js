@@ -58,6 +58,7 @@ const zh = {
 	bannedSend: '你没有邮件发送权限',
 	onlyInternalSend: '权限不足，只能给站内邮箱发件',
 	noDomainPermAdd: '你没有权限添加该域名邮箱',
+	ownDomainExcluded: '已开启排除自身域名，不能创建与自己登录邮箱相同域名的邮箱',
 	noDomainPermReg: '你没有权限注册该域名邮箱',
 	noDomainPermRegKey: '你的注册码没有权限注册该域名邮箱',
 	noDomainPermSend: '你没有权限使用该域名邮箱发送邮件',

@@ -57,6 +57,16 @@
             </el-button>
           </div>
         </div>
+        <div class="setting-item">
+          <div>
+            <span>{{ $t('excludeOwnDomain') }}</span>
+            <el-tooltip effect="dark" :content="$t('excludeOwnDomainDesc')">
+              <Icon class="warning" icon="mingcute:information-line" width="18" height="18"/>
+            </el-tooltip>
+          </div>
+          <el-switch @change="change" :before-change="beforeChange" :active-value="1" :inactive-value="0"
+                     v-model="setting.excludeOwnDomain"/>
+        </div>
       </div>
     </div>
 

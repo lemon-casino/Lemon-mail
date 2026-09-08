@@ -159,28 +159,35 @@
             autocomplete="off"
           >
             <template #suffix>
-              <el-tooltip :content="$t('randomPrefix')" placement="top">
+              <el-dropdown trigger="click" @command="genRandomPrefix">
                 <Icon
                   icon="mingcute:refresh-2-line"
                   width="16" height="16"
                   class="rand-icon"
-                  @click.stop="randomizePrefix"
                 />
-              </el-tooltip>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="chars">{{ $t('randomPrefixChars') }}</el-dropdown-item>
+                    <el-dropdown-item command="word">{{ $t('randomPrefixWord') }}</el-dropdown-item>
+                    <el-dropdown-item command="combo">{{ $t('randomPrefixCombo') }}</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </template>
           </el-input>
         </div>
         <div class="add-field">
           <label class="field-label">{{ $t('select') }}</label>
           <el-select v-model="addForm.suffix" style="width: 100%">
-            <el-option v-for="item in domainList" :key="item" :label="item" :value="item"/>
+            <el-option v-for="item in availableDomains" :key="item" :label="item" :value="item"/>
           </el-select>
         </div>
         <div class="email-preview" v-if="addForm.email">
           <Icon icon="mingcute:mail-line" width="13" height="13" />
           <span>{{ addForm.email }}{{ addForm.suffix }}</span>
         </div>
-        <el-button class="btn" type="primary" @click="submit" :loading="addLoading">{{ $t('add') }}</el-button>
+        <div class="no-domain-tip" v-if="availableDomains.length === 0">{{ $t('noAvailableDomain') }}</div>
+        <el-button class="btn" type="primary" :disabled="availableDomains.length === 0" @click="submit" :loading="addLoading">{{ $t('add') }}</el-button>
       </div>
       <div
         class="add-email-turnstile"
@@ -227,6 +234,7 @@ import {
 } from "@/request/account.js";
 import { sleep } from "@/utils/time-utils.js";
 import { isEmail } from "@/utils/verify-utils.js";
+import { randomChars, randomWord, randomWordCombo } from "@/utils/random-prefix-utils.js";
 import { useSettingStore } from "@/store/setting.js";
 import { useAccountStore } from "@/store/account.js";
 import { useEmailStore } from "@/store/email.js";
@@ -244,7 +252,6 @@ const emailStore = useEmailStore();
 
 const showAdd = ref(false);
 const addLoading = ref(false);
-const domainList = settingStore.domainList;
 const accounts = reactive([]);
 const noLoading = ref(false);
 const loading = ref(false);
@@ -265,6 +272,15 @@ let first = true;
 const addForm = reactive({
   email: '',
   suffix: settingStore.domainList[0]
+});
+
+// 开启「排除自身域名」后，域名下拉中隐藏自己登录邮箱的域名
+const availableDomains = computed(() => {
+  const list = settingStore.domainList || [];
+  if (settingStore.settings.excludeOwnDomain !== 1) return list;
+  const ownDomain = (userStore.user.email || '').split('@')[1];
+  if (!ownDomain) return list;
+  return list.filter(item => item !== '@' + ownDomain);
 });
 let skeletonRows = 8;
 const queryParams = { size: 100 };
@@ -389,6 +405,13 @@ function changeAccount(acc) {
 }
 
 function add() {
+  if (availableDomains.value.length === 0) {
+    ElMessage({ message: t('noAvailableDomain'), type: 'error', plain: true });
+    return;
+  }
+  if (!availableDomains.value.includes(addForm.suffix)) {
+    addForm.suffix = availableDomains.value[0];
+  }
   showAdd.value = true;
   setTimeout(() => { addRef.value.focus(); }, 100);
 }
@@ -440,14 +463,15 @@ function getAccountList() {
   });
 }
 
-function randomizePrefix() {
+function genRandomPrefix(mode) {
   const len = settingStore.settings.randomPrefixLength || 8;
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  const first = 'abcdefghijklmnopqrstuvwxyz';
-  result += first.charAt(Math.floor(Math.random() * first.length));
-  for (let i = 1; i < len; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
-  addForm.email = result;
+  if (mode === 'word') {
+    addForm.email = randomWord();
+  } else if (mode === 'combo') {
+    addForm.email = randomWordCombo(len);
+  } else {
+    addForm.email = randomChars(len);
+  }
 }
 
 function openTransfer(item) {
@@ -746,6 +770,13 @@ path[fill="#ffdda1"] { fill: #ffdd7d; }
   color: var(--el-color-primary);
   font-family: monospace;
   border: 1px solid var(--el-border-color-lighter);
+}
+
+.no-domain-tip {
+  padding: 4px 2px;
+  font-size: 12px;
+  color: var(--el-color-danger);
+  text-align: center;
 }
 
 :deep(.el-dialog) {

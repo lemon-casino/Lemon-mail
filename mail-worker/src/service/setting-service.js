@@ -58,6 +58,14 @@ const settingService = {
 			settingRow.aiModel = resolveAiModel('', c.env.ai_model);
 		}
 
+		if (settingRow.excludeOwnDomain === undefined || settingRow.excludeOwnDomain === null) {
+			try {
+				await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN exclude_own_domain INTEGER NOT NULL DEFAULT 0;`).run();
+				await this.refresh(c);
+			} catch (e) {}
+			settingRow.excludeOwnDomain = 0;
+		}
+
 		// Parse managed domains (web-configured), fall back to env domain
 		let managedDomains = [];
 		if (settingRow.managedDomains) {
@@ -294,6 +302,7 @@ const settingService = {
 			linuxdoSwitch: settingRow.linuxdoSwitch,
 			minEmailPrefix: settingRow.minEmailPrefix,
 			randomPrefixLength: settingRow.randomPrefixLength,
+			excludeOwnDomain: settingRow.excludeOwnDomain ?? 0,
 		emailKeywordBlacklist: settingRow.emailKeywordBlacklist || [],
 		domainMapping: settingRow.domainMapping || {},
 		regKeyHint: settingRow.regKeyHint || '',

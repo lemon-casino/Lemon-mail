@@ -17,7 +17,7 @@ const accountService = {
 
 	async add(c, params, userId) {
 
-		const { addEmailVerify , addEmail, manyEmail, addVerifyCount, minEmailPrefix, emailPrefixFilter, emailKeywordBlacklist, domainList } = await settingService.query(c);
+		const { addEmailVerify , addEmail, manyEmail, addVerifyCount, minEmailPrefix, emailPrefixFilter, emailKeywordBlacklist, domainList, excludeOwnDomain } = await settingService.query(c);
 
 		let { email, token } = params;
 
@@ -69,6 +69,13 @@ const accountService = {
 		}
 
 		const userRow = await userService.selectById(c, userId);
+
+		// 开启「排除自身域名」后，除管理员外不能创建与自己登录邮箱同域名的邮箱
+		if (excludeOwnDomain === settingConst.excludeOwnDomain.OPEN && userRow.email !== c.env.admin) {
+			if (emailUtils.getDomain(email) === emailUtils.getDomain(userRow.email)) {
+				throw new BizError(t('ownDomainExcluded'));
+			}
+		}
 
 		if (emailKeywordBlacklist.length > 0 && userRow.email !== c.env.admin) {
 			const emailName = emailUtils.getName(email).toLowerCase();
