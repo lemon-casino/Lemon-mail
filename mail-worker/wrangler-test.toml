@@ -37,4 +37,4 @@ admin = "admin@example.com"				#管理员的邮箱	示例: admin@example.com
 jwt_secret = "b7f29a1d-18e2-4d3b-941f-f6b2c97c02fd"			#jwt令牌的密钥,随便填一串字符串
 
 [build]
-command = "pnpm --prefix ../mail-vue install && pnpm --prefix ../mail-vue run build"
+command = "pnpm --prefix ../mail-view install && pnpm --prefix ../mail-view run build"
