@@ -12,11 +12,6 @@ app.post('/public/emailList', async (c) => {
 	return c.json(result.ok(list));
 });
 
-app.get('/public/domainList', async (c) => {
-	const list = await publicService.domainList(c);
-	return c.json(result.ok(list));
-});
-
 app.post('/public/addUser', async (c) => {
 	await publicService.addUser(c, await c.req.json());
 	return c.json(result.ok());

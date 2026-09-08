@@ -13,10 +13,6 @@ export function userSetStatus(params) {
     return http.put('/user/setStatus', params)
 }
 
-export function userSetAddEmailEnabled(userId, addEmailEnabled) {
-    return http.put('/user/setAddEmailEnabled', { userId, addEmailEnabled })
-}
-
 export function userSetType(params) {
     return http.put('/user/setType', params)
 }
@@ -52,8 +48,4 @@ export function userBatchSetStatus(userIds, status) {
 
 export function userBatchRestore(userIds) {
     return http.put('/user/batchRestore', { userIds: userIds.join(',') })
-}
-
-export function userDisableAddEmailForNonAdmins() {
-    return http.put('/user/disableAddEmailForNonAdmins')
 }

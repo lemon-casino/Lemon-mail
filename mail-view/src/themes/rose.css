@@ -1,0 +1,43 @@
+/* ═══════════════════════════════════════════════════
+   Theme: Rose
+   Primary: #f43f5e  Dark: #e11d48
+   ═══════════════════════════════════════════════════ */
+
+[data-color-theme="rose"] {
+  /* Login gradient orb colors */
+  --xi-orb-1: rgba(244,63,94,0.62);
+  --xi-orb-2: rgba(239,68,68,0.50);
+  --xi-orb-3: rgba(251,113,133,0.42);
+  --xi-orb-bg-top:    rgba(244,63,94,0.34);
+  --xi-orb-bg-bottom: rgba(239,68,68,0.28);
+  --xi-orb-card-border: rgba(244,63,94,0.24);
+
+  /* Element Plus primary colors */
+  --el-color-primary:         #f43f5e;
+  --el-color-primary-dark-2:  #e11d48;
+  --el-color-primary-light-3: #fb7185;
+  --el-color-primary-light-5: #fda4af;
+  --el-color-primary-light-7: #fecdd3;
+  --el-color-primary-light-8: #ffe4e6;
+  --el-color-primary-light-9: #fff1f2;
+
+  /* Design system */
+  --xi-gradient:              linear-gradient(135deg, #f43f5e, #e11d48);
+  --xi-gradient-hover:        linear-gradient(135deg, #e11d48, #be123c);
+  --xi-shadow-sm:             0 1px 2px rgba(244,63,94,0.05);
+  --xi-shadow:                0 1px 3px rgba(244,63,94,0.08), 0 1px 2px rgba(244,63,94,0.06);
+  --xi-shadow-md:             0 4px 6px -1px rgba(244,63,94,0.08), 0 2px 4px -2px rgba(244,63,94,0.06);
+  --xi-shadow-lg:             0 10px 15px -3px rgba(244,63,94,0.08), 0 4px 6px -4px rgba(244,63,94,0.06);
+  --xi-shadow-card:           0 1px 3px rgba(244,63,94,0.06), 0 0 0 1px rgba(244,63,94,0.04);
+  --xi-shadow-card-hover:     0 8px 25px -5px rgba(244,63,94,0.12), 0 0 0 1px rgba(244,63,94,0.08);
+  --aside-right-border:       0 0 15px rgba(244,63,94,0.06);
+  --choose-account-background: #ffe4e6;
+  --email-hover-background:   #fff1f2;
+  --login-switch-color:       #f43f5e;
+}
+
+.dark[data-color-theme="rose"],
+.dark [data-color-theme="rose"] {
+  --email-hover-background: #3f1520;
+  --choose-account-background: #3f1520;
+}

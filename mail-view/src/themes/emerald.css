@@ -1,0 +1,40 @@
+/* ═══════════════════════════════════════════════════
+   Theme: Emerald
+   Primary: #10b981  Dark: #059669
+   ═══════════════════════════════════════════════════ */
+
+[data-color-theme="emerald"] {
+  --xi-orb-1: rgba(16,185,129,0.62);
+  --xi-orb-2: rgba(5,150,105,0.50);
+  --xi-orb-3: rgba(52,211,153,0.42);
+  --xi-orb-bg-top:    rgba(16,185,129,0.34);
+  --xi-orb-bg-bottom: rgba(5,150,105,0.28);
+  --xi-orb-card-border: rgba(16,185,129,0.24);
+
+  --el-color-primary:         #10b981;
+  --el-color-primary-dark-2:  #059669;
+  --el-color-primary-light-3: #34d399;
+  --el-color-primary-light-5: #6ee7b7;
+  --el-color-primary-light-7: #a7f3d0;
+  --el-color-primary-light-8: #d1fae5;
+  --el-color-primary-light-9: #ecfdf5;
+
+  --xi-gradient:              linear-gradient(135deg, #10b981, #059669);
+  --xi-gradient-hover:        linear-gradient(135deg, #059669, #047857);
+  --xi-shadow-sm:             0 1px 2px rgba(16,185,129,0.05);
+  --xi-shadow:                0 1px 3px rgba(16,185,129,0.08), 0 1px 2px rgba(16,185,129,0.06);
+  --xi-shadow-md:             0 4px 6px -1px rgba(16,185,129,0.08), 0 2px 4px -2px rgba(16,185,129,0.06);
+  --xi-shadow-lg:             0 10px 15px -3px rgba(16,185,129,0.08), 0 4px 6px -4px rgba(16,185,129,0.06);
+  --xi-shadow-card:           0 1px 3px rgba(16,185,129,0.06), 0 0 0 1px rgba(16,185,129,0.04);
+  --xi-shadow-card-hover:     0 8px 25px -5px rgba(16,185,129,0.12), 0 0 0 1px rgba(16,185,129,0.08);
+  --aside-right-border:       0 0 15px rgba(16,185,129,0.06);
+  --choose-account-background: #d1fae5;
+  --email-hover-background:   #ecfdf5;
+  --login-switch-color:       #10b981;
+}
+
+.dark[data-color-theme="emerald"],
+.dark [data-color-theme="emerald"] {
+  --email-hover-background: #052e16;
+  --choose-account-background: #052e16;
+}

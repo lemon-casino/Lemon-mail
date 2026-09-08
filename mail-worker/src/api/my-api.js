@@ -18,4 +18,12 @@ app.delete('/my/delete', async (c) => {
 	return c.json(result.ok());
 });
 
+app.put('/my/lang', async (c) => {
+	const { lang } = await c.req.json();
+	if (lang && (lang === 'zh' || lang === 'en')) {
+		await userService.updateLang(c, userContext.getUserId(c), lang);
+	}
+	return c.json(result.ok());
+});
+
 

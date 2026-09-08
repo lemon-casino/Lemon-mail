@@ -8,29 +8,14 @@ app.get('/account/list', async (c) => {
 	return c.json(result.ok(list));
 });
 
-app.get('/account/recovery/list', async (c) => {
-	const list = await accountService.recoveryList(c, c.req.query(), userContext.getUserId(c));
-	return c.json(result.ok(list));
-});
-
 app.delete('/account/delete', async (c) => {
 	await accountService.delete(c, c.req.query(), userContext.getUserId(c));
-	return c.json(result.ok());
-});
-
-app.delete('/account/physicsDelete', async (c) => {
-	await accountService.physicsDeleteRecovered(c, c.req.query(), userContext.getUserId(c));
 	return c.json(result.ok());
 });
 
 app.post('/account/add', async (c) => {
 	const account = await accountService.add(c, await c.req.json(), userContext.getUserId(c));
 	return c.json(result.ok(account));
-});
-
-app.get('/account/generatePrefix', async (c) => {
-	const prefix = await accountService.generatePrefix(c, c.req.query(), userContext.getUserId(c));
-	return c.json(result.ok(prefix));
 });
 
 app.put('/account/setName', async (c) => {
@@ -48,7 +33,7 @@ app.put('/account/setAsTop', async (c) => {
 	return c.json(result.ok());
 });
 
-app.put('/account/restore', async (c) => {
-	const account = await accountService.restore(c, await c.req.json(), userContext.getUserId(c));
-	return c.json(result.ok(account));
+app.put('/account/cancelTop', async (c) => {
+	await accountService.cancelTop(c, await c.req.json(), userContext.getUserId(c));
+	return c.json(result.ok());
 });

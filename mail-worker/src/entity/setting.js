@@ -16,7 +16,6 @@ export const setting = sqliteTable('setting', {
 	siteKey: text('site_key'),
 	regKey: integer('reg_key').default(1).notNull(),
 	background: text('background'),
-	siteIcon: text('site_icon').default('').notNull(),
 	tgBotToken: text('tg_bot_token').default('').notNull(),
 	tgChatId: text('tg_chat_id').default('').notNull(),
 	tgBotStatus: integer('tg_bot_status').default(1).notNull(),
@@ -54,8 +53,21 @@ export const setting = sqliteTable('setting', {
 	domainMapping: text('domain_mapping').default('{}').notNull(),
 	emailKeywordBlacklist: text('email_keyword_blacklist').default('').notNull(),
 	senderDomainBlacklist: text('sender_domain_blacklist').default('').notNull(),
+	senderFilterMode: integer('sender_filter_mode').default(0).notNull(),
+	senderDomainWhitelist: text('sender_domain_whitelist').default('').notNull(),
 	regKeyHint: text('reg_key_hint').default('').notNull(),
+	regKeyHintEn: text('reg_key_hint_en').default('').notNull(),
 	regKeyLink: text('reg_key_link').default('').notNull(),
-	publicApiAdminDomain: integer('public_api_admin_domain').default(1).notNull()
+	managedDomains: text('managed_domains').default('').notNull(),
+	colorTheme: text('color_theme').default('indigo').notNull(),
+	loginTemplate: text('login_template').default('gradient').notNull(),
+	layoutMode: text('layout_mode').default('default').notNull(),
+	autoCleanDays: integer('auto_clean_days').default(0).notNull(),
+	autoCleanExclude: text('auto_clean_exclude').default('').notNull(),
+	syncDelete: integer('sync_delete').default(1).notNull(),
+	aiCode: integer('ai_code').default(0).notNull(),
+	aiCodeFilter: text('ai_code_filter').default('').notNull(),
+	aiModel: text('ai_model').default('@cf/meta/llama-3.1-8b-instruct-fast').notNull(),
+	newEmailNotify: integer('new_email_notify').default(0).notNull()
 });
 export default setting

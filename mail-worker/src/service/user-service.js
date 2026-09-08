@@ -66,17 +66,20 @@ const userService = {
 		user.permKeys = permKeys;
 		user.role = roleRow;
 		user.type = userRow.type;
-		user.addEmailEnabled = userRow.addEmailEnabled;
+		user.lang = userRow.lang || '';
 
 		if (c.env.admin === userRow.email) {
 			user.role = constant.ADMIN_ROLE
 			user.type = 0;
-			user.addEmailEnabled = 1;
 		}
 
 		return user;
 	},
 
+
+	async updateLang(c, userId, lang) {
+		await orm(c).update(user).set({ lang }).where(eq(user.userId, userId)).run();
+	},
 
 	async resetPassword(c, params, userId) {
 
@@ -173,7 +176,20 @@ const userService = {
 
 
 		if (email) {
-			conditions.push(sql`${user.email} COLLATE NOCASE LIKE ${'%'+ email + '%'}`);
+			// Search by primary email OR by any sub-account email they own
+			const accountMatches = await orm(c)
+				.select({ userId: accountEntity.userId })
+				.from(accountEntity)
+				.where(sql`${accountEntity.email} COLLATE NOCASE LIKE ${'%' + email + '%'}`)
+				.all();
+			const accountUserIds = [...new Set(accountMatches.map(a => a.userId))];
+			if (accountUserIds.length > 0) {
+				conditions.push(
+					sql`(${user.email} COLLATE NOCASE LIKE ${'%' + email + '%'} OR ${user.userId} IN (${sql.raw(accountUserIds.join(','))}))`
+				);
+			} else {
+				conditions.push(sql`${user.email} COLLATE NOCASE LIKE ${'%' + email + '%'}`);
+			}
 		}
 
 
@@ -258,7 +274,6 @@ const userService = {
 				sendAction.sendCount = constant.ADMIN_ROLE.sendCount;
 				sendAction.hasPerm = true;
 				user.type = 0
-				user.addEmailEnabled = 1;
 			}
 
 			user.sendAction = sendAction;
@@ -316,33 +331,6 @@ const userService = {
 		}
 	},
 
-	async setAddEmailEnabled(c, params) {
-		const { addEmailEnabled, userId } = params;
-		const userRow = await this.selectByIdIncludeDel(c, userId);
-
-		if (!userRow) {
-			throw new BizError(t('userNotFound'));
-		}
-
-		if (userRow.email === c.env.admin) {
-			throw new BizError(t('cannotModifyAdminAddEmail'));
-		}
-
-		await orm(c)
-			.update(user)
-			.set({ addEmailEnabled: addEmailEnabled ? 1 : 0 })
-			.where(eq(user.userId, userId))
-			.run();
-	},
-
-	async disableAddEmailForNonAdmins(c) {
-		await orm(c)
-			.update(user)
-			.set({ addEmailEnabled: 0 })
-			.where(sql`${user.email} <> ${c.env.admin}`)
-			.run();
-	},
-
 	async batchSetStatus(c, params) {
 		const { userIds, status } = params;
 		const ids = (typeof userIds === 'string' ? userIds.split(',') : userIds).map(Number);
@@ -396,7 +384,8 @@ const userService = {
 
 		const { email, type, password } = params;
 
-		if (!c.env.domain.includes(emailUtils.getDomain(email))) {
+		const setting = await settingService.query(c);
+		if (!settingService.isDomainValid(setting, emailUtils.getDomain(email))) {
 			throw new BizError(t('notEmailDomain'));
 		}
 

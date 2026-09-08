@@ -44,4 +44,4 @@ linuxdo_callback_url = "${LINUXDO_CALLBACK_URL}"
 linuxdo_switch = "${LINUXDO_SWITCH}"
 
 [build]
-command = "pnpm --prefix ../mail-view install && pnpm --prefix ../mail-view run build"
+command = "pnpm --prefix ../mail-vue install && pnpm --prefix ../mail-vue run build"

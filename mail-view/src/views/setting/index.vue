@@ -3,6 +3,28 @@
     <div class="container">
       <div class="title">{{$t('profile')}}</div>
       <div class="item">
+        <div>{{$t('displayId')}}</div>
+        <div>
+          <el-tooltip :content="$t('clickToCopy')" placement="top" :show-after="200">
+            <span class="display-id-value copyable" @click="copyText(userStore.user.displayId)">
+              {{ userStore.user.displayId || '-' }}
+              <Icon v-if="userStore.user.displayId" icon="mingcute:copy-2-line" width="13" height="13" class="copy-icon" />
+            </span>
+          </el-tooltip>
+        </div>
+      </div>
+      <div class="item">
+        <div>{{$t('emailAccount')}}</div>
+        <div>
+          <el-tooltip :content="$t('clickToCopy')" placement="top" :show-after="200">
+            <span class="copyable" @click="copyText(userStore.user.email)">
+              {{ userStore.user.email }}
+              <Icon icon="mingcute:copy-2-line" width="13" height="13" class="copy-icon" />
+            </span>
+          </el-tooltip>
+        </div>
+      </div>
+      <div class="item">
         <div>{{$t('username')}}</div>
         <div>
           <span v-if="setNameShow" class="edit-name-input">
@@ -18,14 +40,6 @@
             </span>
           </span>
         </div>
-      </div>
-      <div class="item">
-        <div>{{$t('emailAccount')}}</div>
-        <div>{{ userStore.user.email }}</div>
-      </div>
-      <div class="item">
-        <div>{{$t('displayId')}}</div>
-        <div class="display-id-value">{{ userStore.user.displayId || '-' }}</div>
       </div>
       <div class="item">
         <div>{{$t('password')}}</div>
@@ -54,12 +68,14 @@
 </template>
 <script setup>
 import {reactive, ref, defineOptions} from 'vue'
+import {Icon} from "@iconify/vue";
 import {resetPassword, userDelete} from "@/request/my.js";
 import {useUserStore} from "@/store/user.js";
 import router from "@/router/index.js";
 import {accountSetName} from "@/request/account.js";
 import {useAccountStore} from "@/store/account.js";
 import {useI18n} from "vue-i18n";
+import {useServerStore} from "@/store/server.js";
 
 const { t } = useI18n()
 const accountStore = useAccountStore()
@@ -71,6 +87,16 @@ const accountName = ref(null)
 defineOptions({
   name: 'setting'
 })
+
+async function copyText(text) {
+  if (!text) return
+  try {
+    await navigator.clipboard.writeText(text)
+    ElMessage({ message: t('copySuccessMsg'), type: 'success', plain: true })
+  } catch (err) {
+    ElMessage({ message: t('copyFailMsg'), type: 'error', plain: true })
+  }
+}
 
 function showSetName() {
   accountName.value = userStore.user.name
@@ -124,7 +150,8 @@ const deleteConfirm = () => {
     type: 'warning'
   }).then(() => {
     userDelete().then(() => {
-      localStorage.removeItem('token');
+      const serverStore = useServerStore();
+      serverStore.clearToken(serverStore.activeServerId);
       router.replace('/login');
       ElMessage({
         message: t('delSuccessMsg'),
@@ -263,6 +290,21 @@ function submitPwd() {
         font-size: 12.5px;
         color: var(--el-text-color-secondary);
         letter-spacing: 0.5px;
+      }
+
+      .copyable {
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: color 0.15s ease;
+
+        .copy-icon { opacity: 0; transition: opacity 0.15s ease; flex-shrink: 0; }
+
+        &:hover {
+          color: var(--el-color-primary);
+          .copy-icon { opacity: 1; }
+        }
       }
     }
   }

@@ -15,7 +15,7 @@
             </div>
             <div class="right">
               <div class="count-icon">
-                <Icon icon="hugeicons:mailbox-01" width="25" height="25"></Icon>
+                <Icon icon="mingcute:mailbox-line" width="25" height="25"></Icon>
               </div>
             </div>
           </div>
@@ -34,7 +34,7 @@
             </div>
             <div class="right">
               <div class="count-icon">
-                <Icon icon="cil:send" width="25" height="25"></Icon>
+                <Icon icon="mingcute:send-plane-line" width="25" height="25"></Icon>
               </div>
             </div>
           </div>
@@ -53,7 +53,7 @@
             </div>
             <div class="right">
               <div class="count-icon">
-                <Icon icon="lets-icons:e-mail" width="23" height="23"></Icon>
+                <Icon icon="mingcute:mail-line" width="23" height="23"></Icon>
               </div>
             </div>
           </div>
@@ -72,7 +72,7 @@
             </div>
             <div class="right">
               <div class="count-icon">
-                <Icon icon="iconoir:user" width="25" height="25"></Icon>
+                <Icon icon="mingcute:user-3-line" width="25" height="25"></Icon>
               </div>
             </div>
           </div>

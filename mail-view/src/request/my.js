@@ -12,3 +12,7 @@ export function userDelete() {
     return http.delete('/my/delete')
 }
 
+export function saveLang(lang) {
+    return http.put('/my/lang', { lang })
+}
+

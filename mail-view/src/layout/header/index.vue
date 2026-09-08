@@ -1,7 +1,7 @@
 <template>
-  <div class="header" :class="!hasPerm('email:send') ? 'not-send' : ''">
+  <div class="header" :class="{ 'not-send': !hasPerm('email:send'), 'is-navigation-shell': !hasAsideNav }">
     <div class="header-left">
-      <hanburger @click="changeAside" />
+      <hanburger v-if="hasAsideNav" @click="changeAside" />
       <span class="breadcrumb-item">{{ $t(route.meta.title) }}</span>
     </div>
 
@@ -25,7 +25,7 @@
         <Icon icon="mingcute:notification-line" width="18" height="18" />
       </button>
 
-      <el-dropdown ref="userinfoRef" @visible-change="e => userInfoShow = e" :teleported="false" popper-class="detail-dropdown">
+      <el-dropdown ref="userinfoRef" @visible-change="e => userInfoShow = e" popper-class="detail-dropdown">
         <button class="avatar-btn" @click="userInfoHide">
           <div class="avatar-circle">
             {{ formatName(userStore.user.email) }}
@@ -33,17 +33,21 @@
           <Icon class="chevron" icon="mingcute:down-small-fill" width="16" height="16" />
         </button>
         <template #dropdown>
-          <div class="user-panel">
+          <el-dropdown-menu class="user-dropdown-menu">
+            <div class="user-panel">
             <div class="panel-avatar">
               {{ formatName(userStore.user.email) }}
             </div>
             <div class="panel-name">{{ userStore.user.name }}</div>
+            <el-tooltip :content="$t('clickToCopy')" placement="top" :show-after="200">
+              <div class="panel-id" v-if="userStore.user.displayId" @click="copyEmail(userStore.user.displayId)">
+                <Icon icon="mingcute:idcard-line" width="12" height="12" />
+                {{ userStore.user.displayId }}
+                <Icon icon="mingcute:copy-2-line" width="11" height="11" class="panel-id-copy" />
+              </div>
+            </el-tooltip>
             <div class="panel-email" @click="copyEmail(userStore.user.email)">
               {{ userStore.user.email }}
-            </div>
-            <div class="panel-id" v-if="userStore.user.displayId">
-              <Icon icon="mingcute:idcard-line" width="12" height="12" />
-              {{ userStore.user.displayId }}
             </div>
             <div class="panel-role">
               <el-tag size="small" effect="plain">{{ userStore.user.role.name }}</el-tag>
@@ -71,7 +75,8 @@
                 {{ $t('logOut') }}
               </el-button>
             </div>
-          </div>
+            </div>
+          </el-dropdown-menu>
         </template>
       </el-dropdown>
     </div>
@@ -92,6 +97,8 @@ import {hasPerm} from "@/perm/perm.js"
 import {useI18n} from "vue-i18n";
 import {setExtend} from "@/utils/day.js"
 import i18n from "@/i18n/index.js"
+import {useServerStore} from "@/store/server.js"
+import {saveLang} from "@/request/my.js"
 
 const {t} = useI18n();
 const route = useRoute();
@@ -101,6 +108,7 @@ const uiStore = useUiStore();
 const logoutLoading = ref(false)
 const userInfoShow = ref(false)
 const userinfoRef = ref({})
+const hasAsideNav = computed(() => ['default', 'compact'].includes(settingStore.settings?.layoutMode || 'default'))
 
 const accountCount = computed(() => userStore.user.role.accountCount)
 
@@ -181,6 +189,7 @@ function toggleLang() {
   settingStore.lang = next
   i18n.global.locale.value = next
   setExtend(next === 'zh' ? 'zh-cn' : 'en')
+  saveLang(next).catch(() => {})
 }
 
 function openSend() { uiStore.writerRef.open() }
@@ -188,8 +197,9 @@ function changeAside() { uiStore.asideShow = !uiStore.asideShow }
 
 function clickLogout() {
   logoutLoading.value = true
+  const serverStore = useServerStore()
   logout().then(() => {
-    localStorage.removeItem("token")
+    serverStore.clearToken(serverStore.activeServerId)
     router.replace('/login')
   }).finally(() => {
     logoutLoading.value = false
@@ -204,25 +214,62 @@ function formatName(email) {
 <style>
 .detail-dropdown {
   color: var(--el-text-color-primary) !important;
+  background: var(--el-bg-color) !important;
+}
+.detail-dropdown .el-dropdown-menu {
+  background: var(--el-bg-color) !important;
+  border: 1px solid var(--el-border-color-lighter) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  padding: 0 !important;
+}
+.user-dropdown-menu {
+  background: var(--el-bg-color) !important;
+  padding: 0 !important;
+  border: none !important;
+}
+.user-dropdown-menu .user-panel {
+  background: var(--el-bg-color) !important;
+  color: var(--el-text-color-primary) !important;
 }
 </style>
 
 <style lang="scss" scoped>
+/* ══════════════════════════════════════════════════════════════════════════════
+   Header: Eastern Aesthetic / 东方美学顶栏
+   ──────────────────────────────────────────────────────────────────────────────
+   - Clean, minimal design with generous whitespace
+   - Refined interactions and subtle transitions
+   - Jade-accent compose button
+   ══════════════════════════════════════════════════════════════════════════════ */
 :deep(.el-popper.is-pure) {
   border-radius: var(--xi-radius);
   box-shadow: var(--xi-shadow-lg);
+  border: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+}
+
+:deep(.el-dropdown__popper) {
+  background: var(--el-bg-color) !important;
+}
+
+:deep(.el-dropdown__popper .el-dropdown-menu) {
+  background: var(--el-bg-color) !important;
 }
 
 .header {
   display: flex;
   align-items: center;
   height: 100%;
-  gap: 10px;
-  padding: 0 6px 0 0;
+  gap: 12px;
+  padding: 0 8px 0 0;
 }
 
 .header.not-send .compose-btn {
   display: none;
+}
+
+.header.is-navigation-shell {
+  padding-left: 18px;
 }
 
 .header-left {
@@ -233,34 +280,40 @@ function formatName(email) {
 
 .breadcrumb-item {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--el-text-color-primary);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  letter-spacing: -0.01em;
 }
 
 .compose-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--xi-radius);
   background: var(--xi-gradient);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.25);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 2px 8px rgba(61, 139, 132, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   flex-shrink: 0;
 
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 
+      0 6px 20px rgba(61, 139, 132, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
 
   &:active {
     transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(61, 139, 132, 0.25);
   }
 }
 
@@ -272,9 +325,9 @@ function formatName(email) {
 }
 
 .tool-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--xi-radius);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -282,11 +335,11 @@ function formatName(email) {
   color: var(--el-text-color-secondary);
   background: transparent;
   border: none;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
     background: var(--base-fill);
-    color: var(--el-text-color-primary);
+    color: var(--el-color-primary);
   }
 }
 
@@ -307,14 +360,14 @@ function formatName(email) {
 .avatar-btn {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   cursor: pointer;
-  padding: 2px;
-  border-radius: 8px;
+  padding: 3px;
+  border-radius: var(--xi-radius);
   border: none;
   background: transparent;
-  transition: background 0.15s;
-  margin-left: 4px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-left: 6px;
 
   &:hover {
     background: var(--base-fill);
@@ -322,9 +375,9 @@ function formatName(email) {
 }
 
 .avatar-circle {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--xi-radius);
   background: var(--xi-gradient);
   color: #fff;
   font-size: 13px;
@@ -333,92 +386,113 @@ function formatName(email) {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .chevron {
   color: var(--el-text-color-placeholder);
   margin-right: 4px;
+  transition: transform 0.2s ease;
 }
 
 /* ── User panel ── */
 .user-panel {
-  width: 240px;
-  padding: 16px;
+  width: 260px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
 }
 
 .panel-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--xi-radius-lg);
   background: var(--xi-gradient);
   color: #fff;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  box-shadow: 
+    0 4px 12px rgba(61, 139, 132, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .panel-name {
   font-weight: 600;
-  font-size: 14px;
-  max-width: 200px;
+  font-size: 15px;
+  max-width: 220px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   text-align: center;
+  letter-spacing: -0.01em;
 }
 
 .panel-email {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--regular-text-color);
   cursor: pointer;
-  max-width: 200px;
+  max-width: 220px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  transition: color 0.15s;
+  transition: color 0.2s ease;
+  padding: 2px 8px;
+  border-radius: var(--xi-radius-sm);
 
   &:hover {
     color: var(--el-color-primary);
+    background: var(--el-color-primary-light-9);
   }
 }
 
 .panel-id {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 11px;
   color: var(--el-text-color-placeholder);
   letter-spacing: 0.3px;
-  margin-top: 2px;
+  margin-top: 4px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+
+  .panel-id-copy { opacity: 0; transition: opacity 0.15s ease; }
+
+  &:hover {
+    color: var(--el-color-primary);
+    .panel-id-copy { opacity: 1; }
+  }
 }
 
 .panel-role {
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .panel-stats {
   width: 100%;
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
   border-top: 1px solid var(--el-border-color-lighter);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .stat-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 
 .stat-label {
@@ -432,8 +506,8 @@ function formatName(email) {
 
 .panel-logout {
   width: 100%;
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
 

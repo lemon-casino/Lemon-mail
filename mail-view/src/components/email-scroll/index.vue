@@ -11,18 +11,18 @@
       <div class="header-left" :style="'padding-left:' + actionLeft">
 
         <slot name="first"></slot>
-        <Icon class="icon reload" icon="ion:reload" width="18" height="18" @click="refresh"/>
-        <Icon v-perm="'email:delete'" class="icon delete" icon="uiw:delete" width="16" height="16"
+        <Icon class="icon reload" icon="mingcute:refresh-2-line" width="18" height="18" @click="refresh"/>
+        <Icon v-perm="'email:delete'" class="icon delete" icon="mingcute:delete-2-line" width="18" height="18"
               v-if="getSelectedMailsIds().length > 0"
               @click="handleDelete"/>
-        <Icon v-perm="'email:delete'" class="icon delete" icon="fluent:mail-read-20-regular" width="21" height="21"
+        <Icon v-perm="'email:delete'" class="icon delete" icon="mingcute:mail-open-line" width="18" height="18"
               v-if="getSelectedMailsIds().length > 0 && showUnread"
               @click="handleRead"/>
       </div>
 
       <div class="header-right">
         <span class="email-count" v-if="total">{{ $t('emailCount', {total: total}) }}</span>
-        <Icon v-if="showAccountIcon" class="more-icon icon" width="16" height="16" icon="akar-icons:dot-grid-fill"
+        <Icon v-if="showAccountIcon" class="more-icon icon" width="18" height="18" icon="mingcute:dot-grid-line"
               @click="changeAccountShow"/>
       </div>
     </div>
@@ -50,7 +50,7 @@
                            v-model="item.checked" @click.stop></el-checkbox>
               <div @click.stop="starChange(item)" class="pc-star" v-if="showStar">
                 <Icon v-if="item.isStar" icon="fluent-color:star-16" width="20" height="20"/>
-                <Icon v-else icon="solar:star-line-duotone" width="18" height="18"/>
+                <Icon v-else icon="mingcute:star-line" width="18" height="18"/>
               </div>
               <div v-if="!showStar"></div>
               <div class="title" :class="accountShow ? 'title-column' : 'title-column'">
@@ -62,7 +62,7 @@
                     </el-tooltip>
                     <div class="del-status" v-if="item.isDel">
                       <el-tooltip effect="dark" :content="item.isDelContent">
-                        <Icon class="icon" icon="mdi:email-remove" width="20" height="20"/>
+                        <Icon class="icon" icon="mingcute:delete-back-line" width="20" height="20"/>
                       </el-tooltip>
                     </div>
                   </div>
@@ -86,7 +86,12 @@
                         {{ item.subject || '\u200B' }}
                       </slot>
                     </span>
-                    <span class="email-content">{{ item.formatText || '\u200B' }}</span>
+                    <span class="email-content">
+                      <span class="code-chip" v-if="item.code" @click.stop="copyEmailCode(item.code)">
+                        <Icon icon="mingcute:copy-2-line" width="12" height="12"/>{{ item.code }}
+                      </span>
+                      {{ item.formatText || '\u200B' }}
+                    </span>
                   </div>
                   <div class="user-info" v-if="showUserInfo">
                     <div class="user">
@@ -138,19 +143,6 @@
         <el-empty :image-size="isMobile ? 120 : null" :description="$t('noMessagesFound')"/>
       </div>
     </div>
-    <div class="pagination-bar" v-if="pagination && total > 0">
-      <el-pagination
-          v-model:current-page="queryParam.num"
-          v-model:page-size="queryParam.size"
-          :small="isMobile"
-          :pager-count="isMobile ? 5 : 7"
-          :page-sizes="[10, 20, 30, 50]"
-          :layout="paginationLayout"
-          :total="total"
-          @size-change="handleSizeChange"
-          @current-change="handlePageChange"
-      />
-    </div>
     <el-dropdown
         ref="dropdownRef"
         @visible-change="visibleChange"
@@ -168,7 +160,7 @@
           <el-dropdown-item v-if="['email'].includes(props.type)" @click="emailRead(rightClickEmail.emailId)" >
             <template #default>
               <div class="right-dropdown-item">
-                <Icon icon="fluent:mail-read-20-regular" width="20" height="20" />
+                <Icon icon="mingcute:mail-open-line" width="18" height="18" />
                 <span>{{t('markAsRead')}}</span>
               </div>
             </template>
@@ -176,7 +168,7 @@
           <el-dropdown-item v-if="['email','star'].includes(props.type)" @click="openReply(rightClickEmail)">
             <template #default>
               <div class="right-dropdown-item">
-                <Icon icon="la:reply" width="20" height="20"  />
+                <Icon icon="mingcute:back-2-line" width="18" height="18"  />
                 <span>{{t('reply')}}</span>
               </div>
             </template>
@@ -184,7 +176,7 @@
           <el-dropdown-item v-if="['email','send', 'star'].includes(props.type)" @click="openForward(rightClickEmail)">
             <template #default>
               <div class="right-dropdown-item">
-                <Icon icon="iconoir:arrow-up-right" width="19" height="19"  />
+                <Icon icon="mingcute:share-forward-line" width="18" height="18"  />
                 <span>{{t('forward')}}</span>
               </div>
             </template>
@@ -192,7 +184,7 @@
           <el-dropdown-item v-if="['email','send', 'star'].includes(props.type)" @click="starChange(rightClickEmail)">
             <template #default>
               <div class="right-dropdown-item">
-                <Icon icon="solar:star-line-duotone" width="19" height="19"/>
+                <Icon icon="mingcute:star-line" width="18" height="18"/>
                 <span>{{t('star')}}</span>
               </div>
             </template>
@@ -200,7 +192,7 @@
           <el-dropdown-item v-if="props.type === 'all-email'" @click="handleSearch('user', rightClickEmail.userEmail)">
             <template #default>
               <div class="right-dropdown-item">
-                <Icon icon="iconoir:search" width="20" height="20" />
+                <Icon icon="mingcute:search-line" width="18" height="18" />
                 <span>{{t('searchUser')}}</span>
               </div>
             </template>
@@ -208,7 +200,7 @@
           <el-dropdown-item v-if="props.type === 'all-email' " @click="handleSearch('account', rightClickEmail.toEmail)">
             <template #default>
               <div class="right-dropdown-item">
-                <Icon icon="iconoir:search" width="20" height="20" />
+                <Icon icon="mingcute:search-line" width="18" height="18" />
                 <span>{{t('searchEmail')}}</span>
               </div>
             </template>
@@ -216,7 +208,7 @@
           <el-dropdown-item v-if="props.type === 'all-email' " @click="handleSearch('name', rightClickEmail.name)">
             <template #default>
               <div class="right-dropdown-item">
-                <Icon icon="iconoir:search" width="20" height="20" />
+                <Icon icon="mingcute:search-line" width="18" height="18" />
                 <span>{{t('searchSender')}}</span>
               </div>
             </template>
@@ -224,7 +216,7 @@
           <el-dropdown-item @click="rightDelete(rightClickEmail.emailId)">
             <template #default>
               <div class="right-dropdown-item">
-                <Icon icon="uiw:delete" width="16" height="20" style="margin-left: 1px;margin-right: 3px" />
+                <Icon icon="mingcute:delete-2-line" width="18" height="18" />
                 <span>{{t('delete')}}</span>
               </div>
             </template>
@@ -245,6 +237,7 @@ import {useSettingStore} from "@/store/setting.js";
 import {sleep} from "@/utils/time-utils.js"
 import {fromNow} from "@/utils/day.js";
 import {useI18n} from "vue-i18n";
+import {ElMessage} from "element-plus";
 import {EmailUnreadEnum} from "@/enums/email-enum.js";
 import { UseVirtualList } from '@vueuse/components'
 import { useScroll } from '@vueuse/core'
@@ -296,10 +289,6 @@ const props = defineProps({
   showUnread: {
     type: Boolean,
     default: false
-  },
-  pagination: {
-    type: Boolean,
-    default: false
   }
 })
 
@@ -346,8 +335,7 @@ const triggerRef = ref({
 })
 
 const queryParam = reactive({
-  num: 1,
-  size: props.pagination ? 20 : 50
+  size: 50
 });
 
 defineExpose({
@@ -408,10 +396,6 @@ const itemHeight = computed(() => {
     }
 })
 
-const paginationLayout = computed(() => {
-  return isMobile.value ? 'prev, pager, next' : 'total, sizes, prev, pager, next'
-})
-
 watch(emailList, () => {
   updateHasScrollbar();
 })
@@ -438,9 +422,6 @@ watch(followLoading, (isFollowLoading) => {
 });
 
 watch(noLoading, (isNoLoading) => {
-  if (props.pagination) {
-    return
-  }
   if (isNoLoading) {
     expandList.push({
       emailId: 0,
@@ -455,7 +436,7 @@ watch(noLoading, (isNoLoading) => {
 
 // 监听是否到达底部
 watch(() => arrivedState.bottom, (isBottom) => {
-  if (isBottom && !loading.value && !props.pagination) {
+  if (isBottom && !loading.value) {
     loadData();
   }
 });
@@ -589,6 +570,15 @@ function htmlToText(email) {
 
 }
 
+async function copyEmailCode(code) {
+  try {
+    await navigator.clipboard.writeText(code);
+    ElMessage({ message: t('copySuccessMsg'), type: 'success', plain: true });
+  } catch (err) {
+    ElMessage({ message: t('copyFailMsg'), type: 'error', plain: true });
+  }
+}
+
 function cleanSpace(text) {
   return text
       .replace(/[\u200B-\u200F\uFEFF\u034F\u200B-\u200F\u00A0\u3000\u00AD]/g, '')// 移除零宽空格
@@ -714,14 +704,6 @@ function deleteEmail(emailIds) {
       }
     })
   })
-  if (props.pagination) {
-    total.value = Math.max(total.value - emailIds.length, 0);
-    if (emailList.length === 0 && queryParam.num > 1) {
-      queryParam.num--;
-    }
-    getEmailList(true);
-    return;
-  }
   if (emailList.length < queryParam.size && !noLoading.value) {
     getEmailList()
   }
@@ -737,38 +719,6 @@ function addItem(email) {
 
   email.formatText = htmlToText(email);
   email.formatCreateTime = fromNow(email.formatCreateTime);
-
-  if (props.pagination) {
-    if (email.emailId > latestEmail.value?.emailId) {
-      latestEmail.value = email
-    }
-
-    total.value++
-
-    if (queryParam.num !== 1) {
-      return true;
-    }
-
-    handleList([email]);
-
-    if (props.timeSort) {
-      emailList.push(email);
-    } else {
-      const index = emailList.findIndex(item => item.emailId < email.emailId)
-      if (index !== -1) {
-        emailList.splice(index, 0, email);
-      } else {
-        emailList.unshift(email);
-      }
-    }
-
-    if (emailList.length > queryParam.size) {
-      emailList.splice(queryParam.size);
-    }
-
-    updateCheckStatus();
-    return true;
-  }
 
   if (props.timeSort) {
     if (noLoading.value) {
@@ -847,13 +797,13 @@ function getEmailList(refresh = false) {
 
   if (reqLock) return;
 
-  let emailId = props.pagination ? 0 : (emailList.length > 0 ? emailList.at(-1).emailId : 0);
+  let emailId = emailList.length > 0 ? emailList.at(-1).emailId : 0;
 
   reqLock = true
 
   if (!refresh) {
 
-    if (loading.value || (!props.pagination && noLoading.value)) {
+    if (loading.value || noLoading.value) {
       reqLock = false
       return
     }
@@ -872,7 +822,7 @@ function getEmailList(refresh = false) {
   }
   let start = Date.now();
 
-  props.getEmailList(emailId, queryParam.size, queryParam.num).then(async data => {
+  props.getEmailList(emailId, queryParam.size).then(async data => {
     let end = Date.now();
     let duration = end - start;
     if (duration < 300 && !emailId) {
@@ -880,13 +830,13 @@ function getEmailList(refresh = false) {
     }
     firstLoad.value = false
 
-    let list = (data.list || []).map(item => ({
+    let list = data.list.map(item => ({
       ...item,
       checked: false
     }));
 
 
-    if (refresh || props.pagination) {
+    if (refresh) {
       emailList.length = 0
     }
 
@@ -896,15 +846,10 @@ function getEmailList(refresh = false) {
     emailList.push(...list);
     if (refresh) scrollbarRef.value?.setScrollTop(0);
 
-    if (props.pagination) {
-      noLoading.value = list.length === 0;
-      followLoading.value = false;
-    } else {
-      noLoading.value = data.list.length < queryParam.size;
-      followLoading.value = data.list.length >= queryParam.size;
-    }
+    noLoading.value = data.list.length < queryParam.size;
+    followLoading.value = data.list.length >= queryParam.size;
 
-    total.value = data.total || 0;
+    total.value = data.total;
   }).finally(() => {
     loading.value = false
     reqLock = false
@@ -917,14 +862,14 @@ function handleList(list) {
     email.formatCreateTime = fromNow(email.createTime);
     email.test = t('received')
     const statusIconMap = {
-      0: { icon: 'ic:round-mark-email-read', color: '#51C76B', content: t('received') },
-      1: { icon: 'bi:send-arrow-up-fill',  color: '#51C76B', content: t('sent') },
-      2: { icon: 'bi:send-check-fill',     color: '#51C76B', content: t('delivered') },
-      3: { icon: 'bi:send-x-fill',         color: '#F56C6C', content: t('bounced') },
-      8: { icon: 'bi:send-x-fill',         color: '#F56C6C', content: t('bounced') },
-      4: { icon: 'bi:send-exclamation-fill', color: '#FBBD08', content: t('complained') },
-      5: { icon: 'bi:send-arrow-up-fill',  color: '#FBBD08', content: t('delayed') },
-      7: { icon: 'ic:round-mark-email-read', color: '#FBBD08', content: t('noRecipient') },
+      0: { icon: 'mingcute:mail-open-fill',    color: '#51C76B', content: t('received') },
+      1: { icon: 'mingcute:send-fill',         color: '#51C76B', content: t('sent') },
+      2: { icon: 'mingcute:check-circle-fill', color: '#51C76B', content: t('delivered') },
+      3: { icon: 'mingcute:close-circle-fill', color: '#F56C6C', content: t('bounced') },
+      8: { icon: 'mingcute:close-circle-fill', color: '#F56C6C', content: t('bounced') },
+      4: { icon: 'mingcute:warning-fill',      color: '#FBBD08', content: t('complained') },
+      5: { icon: 'mingcute:time-fill',         color: '#FBBD08', content: t('delayed') },
+      7: { icon: 'mingcute:question-fill',     color: '#FBBD08', content: t('noRecipient') },
     };
 
     if (email.isDel) {
@@ -945,9 +890,6 @@ function refresh() {
 function refreshList() {
   checkAll.value = false;
   isIndeterminate.value = false;
-  if (props.pagination) {
-    queryParam.num = 1;
-  }
   getEmailList(true);
 }
 
@@ -955,43 +897,22 @@ function loadData() {
   getEmailList()
 }
 
-function handlePageChange() {
-  checkAll.value = false;
-  isIndeterminate.value = false;
-  getEmailList(true);
-}
-
-function handleSizeChange() {
-  queryParam.num = 1;
-  checkAll.value = false;
-  isIndeterminate.value = false;
-  getEmailList(true);
-}
-
 </script>
 <style lang="scss" scoped>
-
+/* ══════════════════════════════════════════════════════════════════════════════
+   Email Scroll: Eastern Aesthetic / 东方美学邮件列表
+   ──────────────────────────────────────────────────────────────────────────────
+   - Clean, minimal email rows with refined hover states
+   - Elegant transitions and subtle jade accents
+   ══════════════════════════════════════════════════════════════════════════════ */
 .email-container {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr;
   padding: 0;
   font-size: 14px;
   color: var(--el-text-color-primary);
   overflow: hidden;
   height: 100%;
-}
-
-.pagination-bar {
-  display: flex;
-  justify-content: flex-end;
-  padding: 8px 12px;
-  border-top: 1px solid var(--el-border-color-lighter);
-  overflow: hidden;
-
-  @media (max-width: 700px) {
-    justify-content: center;
-    padding: 6px 8px;
-  }
 }
 
 .scroll {
@@ -1015,8 +936,9 @@ function handleSizeChange() {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 15px 0 0 0;
+    padding: 18px 0 0 0;
     color: var(--secondary-text-color);
+    font-size: 13px;
   }
 
   .follow-loading {
@@ -1040,7 +962,7 @@ function handleSizeChange() {
   }
 
   .loading-show {
-    transition: all 200ms ease 200ms;
+    transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1) 200ms;
     opacity: 1;
   }
 
@@ -1053,26 +975,31 @@ function handleSizeChange() {
 
 :deep(.email-row) {
   display: flex;
-  padding: 8px 0;
+  padding: 10px 0;
   justify-content: space-between;
   border-bottom: 1px solid var(--el-border-color-extra-light);
   cursor: pointer;
   align-items: center;
   position: relative;
-  transition: background 0.15s ease-in-out;
-  height: 48px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 50px;
+  
+  /* Hover effect with jade accent */
+  &:hover {
+    background: var(--email-hover-background);
+  }
+  
   @media (max-width: 1366px) {
-    height: 83px;
+    height: 85px;
   }
 
   @media (pointer: coarse) {
-    /* 触屏 */
     user-select: none;
   }
   &.all-email {
     height: auto;
-    min-height: 65px;
-    padding: 8px 0;
+    min-height: 68px;
+    padding: 10px 0;
     align-items: flex-start;
 
     /* 在中间宽度（开发者工具打开 / 非全屏），保持双列但让左列缩小，不要切换为单列 */
@@ -1301,6 +1228,27 @@ function handleSizeChange() {
           margin-top: 0;
         }
       }
+
+      .code-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 1px 7px;
+        margin-right: 4px;
+        border-radius: 10px;
+        font-size: 12px;
+        line-height: 16px;
+        cursor: pointer;
+        color: var(--el-color-primary);
+        background: var(--el-color-primary-light-9);
+        border: 1px solid var(--el-color-primary-light-7);
+        vertical-align: middle;
+        transition: background 0.15s;
+
+        &:hover {
+          background: var(--el-color-primary-light-8);
+        }
+      }
     }
   }
 
@@ -1370,17 +1318,18 @@ function handleSizeChange() {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 15px;
-  padding: 3px 15px;
+  gap: 16px;
+  padding: 6px 16px;
   border-bottom: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
 
   .header-left {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
     position: relative;
-    gap: 8px;
-    padding-left: 2px;
+    gap: 10px;
+    padding-left: 4px;
     min-width: 0;
     overflow: hidden;
     color: var(--el-text-color-primary);
@@ -1391,22 +1340,32 @@ function handleSizeChange() {
     grid-template-columns: auto auto;
     align-items: start;
     height: 100%;
-    color: var(--el-text-color-primary);;
+    color: var(--el-text-color-secondary);
 
     .email-count {
       white-space: nowrap;
       margin-top: 6px;
+      font-size: 13px;
     }
   }
 
   .icon {
     font-size: 18px;
     cursor: pointer;
+    color: var(--el-text-color-secondary);
+    transition: all 0.2s ease;
+    padding: 4px;
+    border-radius: var(--xi-radius-sm);
+    
+    &:hover {
+      color: var(--el-color-primary);
+      background: var(--el-color-primary-light-9);
+    }
   }
 
   .more-icon {
-    margin-top: 8px;
-    margin-left: 15px;
+    margin-top: 6px;
+    margin-left: 14px;
   }
 }
 
@@ -1423,7 +1382,15 @@ function handleSizeChange() {
 
 .right-dropdown-item {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+
+  svg {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+  }
 }
 
 :deep(.el-dropdown-menu__item:last-child) {
@@ -1440,14 +1407,15 @@ function handleSizeChange() {
 }
 
 .unread {
-  height: 6px;
-  width: 6px;
+  height: 7px;
+  width: 7px;
   background: var(--el-color-primary);
   margin-bottom: 2px;
-  margin-right: 5px;
+  margin-right: 6px;
   border-radius: 50%;
   display: inline-block;
   justify-content: center;
+  box-shadow: 0 0 6px rgba(61, 139, 132, 0.4);
 }
 
 ul {

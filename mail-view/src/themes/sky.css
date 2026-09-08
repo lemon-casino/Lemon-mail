@@ -1,0 +1,40 @@
+/* ═══════════════════════════════════════════════════
+   Theme: Sky
+   Primary: #0ea5e9  Dark: #0284c7
+   ═══════════════════════════════════════════════════ */
+
+[data-color-theme="sky"] {
+  --xi-orb-1: rgba(14,165,233,0.62);
+  --xi-orb-2: rgba(2,132,199,0.50);
+  --xi-orb-3: rgba(56,189,248,0.42);
+  --xi-orb-bg-top:    rgba(14,165,233,0.34);
+  --xi-orb-bg-bottom: rgba(2,132,199,0.28);
+  --xi-orb-card-border: rgba(14,165,233,0.24);
+
+  --el-color-primary:         #0ea5e9;
+  --el-color-primary-dark-2:  #0284c7;
+  --el-color-primary-light-3: #38bdf8;
+  --el-color-primary-light-5: #7dd3fc;
+  --el-color-primary-light-7: #bae6fd;
+  --el-color-primary-light-8: #e0f2fe;
+  --el-color-primary-light-9: #f0f9ff;
+
+  --xi-gradient:              linear-gradient(135deg, #0ea5e9, #0284c7);
+  --xi-gradient-hover:        linear-gradient(135deg, #0284c7, #0369a1);
+  --xi-shadow-sm:             0 1px 2px rgba(14,165,233,0.05);
+  --xi-shadow:                0 1px 3px rgba(14,165,233,0.08), 0 1px 2px rgba(14,165,233,0.06);
+  --xi-shadow-md:             0 4px 6px -1px rgba(14,165,233,0.08), 0 2px 4px -2px rgba(14,165,233,0.06);
+  --xi-shadow-lg:             0 10px 15px -3px rgba(14,165,233,0.08), 0 4px 6px -4px rgba(14,165,233,0.06);
+  --xi-shadow-card:           0 1px 3px rgba(14,165,233,0.06), 0 0 0 1px rgba(14,165,233,0.04);
+  --xi-shadow-card-hover:     0 8px 25px -5px rgba(14,165,233,0.12), 0 0 0 1px rgba(14,165,233,0.08);
+  --aside-right-border:       0 0 15px rgba(14,165,233,0.06);
+  --choose-account-background: #e0f2fe;
+  --email-hover-background:   #f0f9ff;
+  --login-switch-color:       #0ea5e9;
+}
+
+.dark[data-color-theme="sky"],
+.dark [data-color-theme="sky"] {
+  --email-hover-background: #082f49;
+  --choose-account-background: #082f49;
+}

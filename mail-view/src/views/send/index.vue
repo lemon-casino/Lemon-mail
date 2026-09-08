@@ -11,14 +11,13 @@
                @jump="jumpContent"
                :time-sort="params.timeSort"
                :type="'send'"
-               pagination
   >
     <template #first>
       <el-tooltip :content="$t('sortByTime')" placement="top">
-        <Icon class="icon" @click="changeTimeSort" icon="material-symbols-light:timer-arrow-down-outline"
-              v-if="params.timeSort === 0" width="28" height="28"/>
-        <Icon class="icon" @click="changeTimeSort" icon="material-symbols-light:timer-arrow-up-outline" v-else
-              width="28" height="28"/>
+        <Icon class="icon" @click="changeTimeSort" icon="mingcute:sort-descending-line"
+              v-if="params.timeSort === 0" width="18" height="18"/>
+        <Icon class="icon" @click="changeTimeSort" icon="mingcute:sort-ascending-line" v-else
+              width="18" height="18"/>
       </el-tooltip>
     </template>
   </emailScroll>
@@ -63,13 +62,7 @@ function jumpContent(email) {
   emailStore.contentData.delType = 'logic'
   emailStore.contentData.showStar = true
   emailStore.contentData.showReply = true
-  router.push({
-    path: '/message',
-    query: {
-      emailId: email.emailId,
-      storageScope: 'sent'
-    }
-  })
+  router.push('/message')
 }
 
 function addStar(email) {
@@ -80,22 +73,10 @@ function cancelStar(email) {
   emailStore.starScroll?.deleteEmail([email.emailId])
 }
 
-function getEmailList(emailId, size, num) {
-  if (!accountStore.currentAccountId || !accountStore.currentAccount?.email) {
-    return Promise.resolve({
-      list: [],
-      total: 0,
-      latestEmail: {
-        emailId: 0,
-        accountId: 0,
-        userId: 0,
-      }
-    });
-  }
-
+function getEmailList(emailId, size) {
   const accountId =  accountStore.currentAccountId;
   const allReceive = accountStore.currentAccount?.allReceive;
-  return emailList(accountId, allReceive, emailId, params.timeSort, size, 1, num).then(data => {
+  return emailList(accountId, allReceive, emailId, params.timeSort, size, 1).then(data => {
     data.latestEmail.reqAccountId = accountId;
     data.latestEmail.allReceive = allReceive;
     return data;

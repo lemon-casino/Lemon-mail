@@ -2,7 +2,7 @@
   <div class="reg-key">
     <div class="header-actions">
       <el-tooltip :content="$t('addItem')" placement="top">
-        <Icon class="icon" icon="ion:add-outline" width="23" height="23" @click="openAdd"/>
+        <Icon class="icon" icon="mingcute:add-line" width="18" height="18" @click="openAdd"/>
       </el-tooltip>
       <div class="search">
         <el-input
@@ -13,13 +13,13 @@
         </el-input>
       </div>
       <el-tooltip :content="$t('searchAction')" placement="top">
-        <Icon class="icon" icon="iconoir:search" @click="search" width="20" height="20"/>
+        <Icon class="icon" icon="mingcute:search-line" @click="search" width="18" height="18"/>
       </el-tooltip>
       <el-tooltip :content="$t('refresh')" placement="top">
-        <Icon class="icon" icon="ion:reload" width="18" height="18" @click="refresh"/>
+        <Icon class="icon" icon="mingcute:refresh-2-line" width="18" height="18" @click="refresh"/>
       </el-tooltip>
       <el-tooltip :content="$t('clearUnused')" placement="top">
-        <Icon class="icon" icon="fluent:broom-sparkle-16-regular" width="22" height="22" @click="clearNotUse"/>
+        <Icon class="icon" icon="mingcute:broom-line" width="18" height="18" @click="clearNotUse"/>
       </el-tooltip>
     </div>
 
@@ -51,7 +51,7 @@
             </div>
             <div class="info-right">
               <el-dropdown class="setting">
-                <Icon icon="fluent:settings-24-filled" width="21" height="21" color="#909399"/>
+                <Icon icon="mingcute:settings-3-line" width="20" height="20" color="#909399"/>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item @click="copyCode(item.code)">{{ $t('copy') }}</el-dropdown-item>
@@ -72,7 +72,7 @@
       <div class="container">
         <el-input v-model="addForm.code" :placeholder="$t('regKey')">
           <template #suffix>
-            <Icon @click.stop="genCode" class="gen-code" icon="bitcoin-icons:refresh-filled" width="24" height="24"/>
+            <Icon @click.stop="genCode" class="gen-code" icon="mingcute:refresh-2-line" width="20" height="20"/>
           </template>
         </el-input>
         <el-select v-model="addForm.roleId" :placeholder="$t('roleDesc')">

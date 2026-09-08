@@ -23,10 +23,11 @@
 		"i18next": "^25.3.2",
 		"linkedom": "^0.18.10",
 		"postal-mime": "^2.4.3",
-		"react": "^19.1.1",
-		"react-dom": "^19.1.1",
 		"resend": "^6.4.1",
 		"ua-parser-js": "^2.0.3",
 		"uuid": "^11.1.0"
+	},
+	"overrides": {
+		"fast-xml-parser": "^5.10.1"
 	}
 }

@@ -4,7 +4,7 @@
       <el-checkbox disabled :class=" props.type === 'all-email' ? 'all-email-checkbox' : 'checkbox'"
       ></el-checkbox>
       <div class="pc-star" v-if="showStar">
-        <Icon style="color: var(--el-border-color)" icon="solar:star-line-duotone" width="18" height="18"/>
+        <Icon style="color: var(--el-border-color)" icon="mingcute:star-line" width="18" height="18"/>
       </div>
       <div v-if="!showStar"></div>
       <div class="title" :class="accountShow ? 'title-column' : 'title-column'">

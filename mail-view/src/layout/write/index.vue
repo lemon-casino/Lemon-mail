@@ -1,10 +1,10 @@
 <template>
-  <div class="send" v-show="show" :style="overlayStyle">
+  <div class="send" v-show="show">
     <div class="write-box">
       <div class="title">
         <div class="title-left">
           <span class="title-text">
-            <Icon icon="hugeicons:quill-write-01" width="28" height="28"/>
+            <Icon icon="mingcute:quill-pen-line" width="26" height="26"/>
           </span>
           <span class="sender-label">{{ $t('sender') }}:</span>
           <el-select
@@ -30,7 +30,7 @@
           </el-select>
         </div>
         <div @click="close" style="cursor: pointer;">
-          <Icon icon="material-symbols-light:close-rounded" width="22" height="22"/>
+          <Icon icon="mingcute:close-line" width="20" height="20"/>
         </div>
       </div>
       <div class="container">
@@ -58,7 +58,7 @@
           </template>
           <template #suffix>
             <div style="display: flex;margin-right: 3px;">
-              <Icon icon="fa7-solid:user-plus" width="20" height="20" class="add-contact" @click.stop="openContacts" />
+              <Icon icon="mingcute:user-add-2-line" width="20" height="20" class="add-contact" @click.stop="openContacts" />
             </div>
           </template>
         </el-input-tag>
@@ -66,18 +66,18 @@
         <tinyEditor :def-value="defValue" ref="editor" @change="change" @focus="focusChange" />
         <div class="button-item">
           <div class="att-add" @click="chooseFile">
-            <Icon icon="iconamoon:attachment-fill" width="24" height="24"/>
+            <Icon icon="mingcute:attachment-2-line" width="22" height="22"/>
           </div>
           <div class="att-clear" @click="clearContent">
-            <Icon icon="icon-park-outline:clear-format" width="24" height="24 "/>
+            <Icon icon="mingcute:eraser-line" width="22" height="22"/>
           </div>
           <div class="att-list">
             <div class="att-item" v-for="(item,index) in form.attachments" :key="index">
               <Icon v-bind="getIconByName(item.filename)"/>
               <span class="att-filename">{{ item.filename }}</span>
               <span class="att-size">{{ formatBytes(item.size) }}</span>
-              <Icon style="cursor: pointer;" icon="material-symbols-light:close-rounded" @click="delAtt(index)"
-                    width="22" height="22"/>
+              <Icon style="cursor: pointer;" icon="mingcute:close-line" @click="delAtt(index)"
+                    width="18" height="18"/>
             </div>
           </div>
           <div>
@@ -99,7 +99,7 @@
         <el-table-column width="55" label="" >
           <template #default>
             <div style="display: flex;">
-              <Icon icon="mage:user" style="color: var(--el-text-color-primary)" width="22" height="22" color="#606266" />
+              <Icon icon="mingcute:user-3-line" style="color: var(--el-text-color-primary)" width="20" height="20" color="#606266" />
             </div>
           </template>
         </el-table-column>
@@ -113,10 +113,10 @@
 </template>
 <script setup>
 import tinyEditor from '@/components/tiny-editor/index.vue'
-import {h, nextTick, onMounted, onUnmounted, reactive, ref, toRaw, computed, watch} from "vue";
+import {h, nextTick, onMounted, onUnmounted, reactive, ref, toRaw, computed} from "vue";
 import {Icon} from "@iconify/vue";
 import {useUserStore} from "@/store/user.js";
-import {emailSend} from "@/request/email.js";
+import {emailSend, ensureEmailContent} from "@/request/email.js";
 import {isEmail} from "@/utils/verify-utils.js";
 import {useAccountStore} from "@/store/account.js";
 import {useEmailStore} from "@/store/email.js";
@@ -134,7 +134,7 @@ import {useI18n} from "vue-i18n";
 import router from "@/router/index.js";
 import {ElMessageBox} from "element-plus";
 import {accountList as fetchAccountList} from "@/request/account.js";
-import {useUiStore} from "@/store/ui.js";
+import {useServerStore} from "@/store/server.js";
 
 defineExpose({
   open,
@@ -144,7 +144,6 @@ defineExpose({
 })
 
 const {t} = useI18n()
-const uiStore = useUiStore()
 const writerStore = useWriterStore();
 const draftStore = userDraftStore()
 const settingStore = useSettingStore()
@@ -161,7 +160,6 @@ const contactsTabRef = ref({})
 const showContacts = ref(false)
 const mySelect = ref()
 let selectStatus = false
-const overlayStyle = ref({})
 const backReply = reactive({
   receiveEmail: [],
   subject: '',
@@ -364,9 +362,7 @@ async function sendEmail() {
     return
   }
 
-  if (!form.content) {
-    form.content = editor.value.getContent();
-  }
+  form.content = editor.value.getContent();
 
   if (!form.content) {
     ElMessage({
@@ -443,7 +439,8 @@ async function sendEmail() {
       position: 'bottom-right'
     })
     if (e.code === 401) {
-      localStorage.removeItem('token');
+      const serverStore = useServerStore();
+      serverStore.clearToken(serverStore.activeServerId);
       router.replace('/login');
     }
     show.value = true
@@ -489,7 +486,7 @@ function focusChange() {
   if (selectStatus) openSelect()
 }
 
-function openForward(email) {
+async function openForward(email) {
   resetForm();
 
   email.subject = email.subject || ''
@@ -498,6 +495,9 @@ function openForward(email) {
   form.sendType = 'forward'
 
   defValue.value = ''
+
+  // 列表只带摘要，引用原文前先取完整正文
+  try { await ensureEmailContent(email) } catch (e) { console.error(e) }
 
   setTimeout(() => {
     defValue.value = `
@@ -515,7 +515,7 @@ function openForward(email) {
   });
 }
 
-function openReply(email) {
+async function openReply(email) {
 
   resetForm();
 
@@ -531,6 +531,9 @@ function openReply(email) {
   form.emailId = email.emailId
 
   defValue.value = ''
+
+  // 列表只带摘要，引用原文前先取完整正文
+  try { await ensureEmailContent(email) } catch (e) { console.error(e) }
 
   setTimeout(() => {
     defValue.value = `
@@ -591,52 +594,19 @@ const handleKeyDown = (event) => {
   }
 };
 
-function syncOverlayStyle() {
-  if (window.innerWidth <= 1024) {
-    overlayStyle.value = {}
-    return
-  }
-
-  const aside = uiStore.asideShow ? document.querySelector('.layout .aside') : null
-  const asideWidth = aside?.getBoundingClientRect().width || 0
-
-  overlayStyle.value = {
-    left: `${asideWidth}px`,
-    width: `calc(100% - ${asideWidth}px)`
-  }
-}
-
-watch(() => uiStore.asideShow, () => {
-  nextTick(() => {
-    syncOverlayStyle()
-  })
-})
-
-watch(show, (visible) => {
-  if (!visible) return
-  nextTick(() => {
-    syncOverlayStyle()
-  })
-})
-
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown);
-  window.addEventListener('resize', syncOverlayStyle);
-  syncOverlayStyle()
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown);
-  window.removeEventListener('resize', syncOverlayStyle);
 });
 
 function close() {
 
   if (selectStatus) openSelect();
 
-  if (!form.content) {
-    form.content = editor.value.getContent();
-  }
+  form.content = editor.value.getContent();
 
   if (form.draftId) {
     draftStore.setDraft = {...toRaw(form)}
@@ -747,8 +717,6 @@ function close() {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 120;
-  transition: left 0.2s ease, width 0.2s ease;
 
   .write-box {
     background: var(--el-bg-color);

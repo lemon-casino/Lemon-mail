@@ -18,6 +18,16 @@ const fileUtils = {
 		return base64.split(',')[1] || base64;
 	},
 
+	arrayBufferToBase64(buff) {
+		const bytes = buff instanceof Uint8Array ? buff : new Uint8Array(buff);
+		const chunkSize = 0x8000;
+		let binary = '';
+		for (let i = 0; i < bytes.length; i += chunkSize) {
+			binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+		}
+		return btoa(binary);
+	},
+
 	base64ToUint8Array(base64) {
 		const binaryStr = atob(base64);
 		const len = binaryStr.length;
@@ -35,16 +45,15 @@ const fileUtils = {
 	 * @returns {File} File 对象
 	 */
 	base64ToFile(base64Data, customFilename) {
-		const match = base64Data.match(/^data:([a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+);base64,/);
+		const match = base64Data.match(/^data:(image|jpeg|video)\/([a-zA-Z0-9.+-]+);base64,/);
 		if (!match) {
 			throw new Error('Invalid base64 data format');
 		}
 
-		const mimeType = match[1];
-		const rawExt = mimeType.split('/')[1];
-		const ext = rawExt === 'svg+xml' ? 'svg' : rawExt === 'x-icon' ? 'ico' : rawExt;
-		const type = mimeType.split('/')[0];
-		const cleanBase64 = base64Data.replace(/^data:[a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+;base64,/, '');
+		const type = match[1]; // image 或 video
+		const ext = match[2];  // jpg, png, mp4 等
+		const mimeType = `${type}/${ext}`;
+		const cleanBase64 = base64Data.replace(/^data:(image|jpeg|video)\/[a-zA-Z0-9.+-]+;base64,/, '');
 
 		const byteCharacters = atob(cleanBase64);
 		const byteArrays = [];

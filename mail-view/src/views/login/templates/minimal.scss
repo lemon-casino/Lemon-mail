@@ -1,0 +1,258 @@
+/* Template 02: Quiet editorial
+   Borderless, left-aligned and typographic. Deliberately avoids a card. */
+.template-minimal {
+  align-items: center;
+  justify-content: center;
+  background: #fbfbf9;
+
+  .bg-layer {
+    display: none;
+  }
+
+  .card-wrapper {
+    width: 100%;
+    min-width: 0;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: 84px 24px 28px;
+  }
+
+  .auth-card {
+    max-width: 430px;
+    padding: 0;
+    background: transparent;
+    backdrop-filter: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .card-header {
+    display: none;
+  }
+
+  .card-heading {
+    margin-bottom: 26px;
+    text-align: center;
+
+    h2 {
+      margin-bottom: 8px;
+      color: #141818;
+      font-size: clamp(28px, 3vw, 38px);
+      font-weight: 600;
+      letter-spacing: -.045em;
+    }
+
+    p {
+      color: #8a8d89;
+      font-size: 14px;
+    }
+  }
+
+  .tab-bar {
+    position: static;
+    width: 100%;
+    margin: 0 0 28px;
+    padding: 3px;
+    gap: 0;
+    background: transparent;
+    border: 1px solid #dddfdc;
+    border-radius: 8px;
+  }
+
+  .tab {
+    min-width: 0;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 5px;
+
+    &.active {
+      color: #171b1b;
+      background: #fff;
+      box-shadow: 0 1px 5px rgba(20,24,24,.08);
+    }
+  }
+
+  .fields {
+    gap: 20px;
+  }
+
+  .field {
+    gap: 8px;
+
+    label {
+      color: #3c403e;
+      font-size: 11px;
+      letter-spacing: .06em;
+    }
+  }
+
+  .input-main.standalone,
+  .input-group {
+    border: 0;
+    border-radius: 0;
+    background: #f0f1ee;
+
+    &:focus-within {
+      background: #e9ece8;
+      border-color: transparent;
+      box-shadow: inset 3px 0 0 var(--el-color-primary);
+    }
+  }
+
+  .input-main input {
+    height: 48px;
+    font-size: 15px;
+  }
+
+  .input-icon {
+    padding-left: 15px;
+  }
+
+  .input-suffix {
+    margin: 0;
+    border: 0;
+    border-left: 1px solid #d8dad7;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .primary-btn {
+    width: 100%;
+    min-width: 0;
+    height: 46px;
+    align-self: stretch;
+    padding: 0 28px;
+    border-radius: 7px;
+    background: var(--xi-gradient);
+    box-shadow: none;
+
+    &:hover:not(:disabled) {
+      background: var(--xi-gradient-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px var(--xi-orb-card-border);
+    }
+  }
+
+  .divider {
+    max-width: none;
+  }
+
+  .social-btn {
+    width: 100%;
+    min-width: 0;
+    align-self: stretch;
+    border-radius: 7px;
+  }
+
+  .page-footer {
+    align-self: center;
+    margin-top: 30px;
+  }
+}
+
+.minimal-masthead {
+  position: absolute;
+  z-index: 2;
+  top: 30px;
+  left: 34px;
+  right: 34px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+}
+
+.minimal-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #171b1b;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+.minimal-edition {
+  color: #a0a39f;
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.template-minimal::before {
+  content: '';
+  position: absolute;
+  width: min(55vw, 720px);
+  height: min(55vw, 720px);
+  left: 50%;
+  top: 50%;
+  border: 1px solid rgba(20,24,24,.035);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 80px rgba(20,24,24,.012),
+    0 0 0 160px rgba(20,24,24,.008);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+:global(.dark) .template-minimal {
+  background: #101313;
+
+  .card-heading h2,
+  .minimal-brand {
+    color: #f1f3f0;
+  }
+
+  .card-heading p,
+  .minimal-edition {
+    color: #747975;
+  }
+
+  .field label {
+    color: #c5c9c5;
+  }
+
+  .input-main.standalone,
+  .input-group {
+    background: #1b1f1e;
+
+    &:focus-within {
+      background: #202523;
+    }
+  }
+
+  .input-suffix {
+    border-left-color: #333936;
+    background: transparent;
+  }
+
+  &::before {
+    border-color: rgba(255,255,255,.035);
+    box-shadow:
+      0 0 0 80px rgba(255,255,255,.01),
+      0 0 0 160px rgba(255,255,255,.007);
+  }
+}
+
+@media (max-width: 760px) {
+  .minimal-edition {
+    display: none;
+  }
+
+  .template-minimal {
+    .card-wrapper {
+      width: 100%;
+      min-width: 0;
+      align-items: center;
+      padding: 76px 24px 14px;
+    }
+  }
+
+  .minimal-masthead {
+    top: 29px;
+    left: 20px;
+    right: auto;
+  }
+}

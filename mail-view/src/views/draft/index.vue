@@ -12,7 +12,6 @@
                :showStar="false"
                @delete-draft="deleteDraft"
                :type="'draft'"
-               pagination
   >
     <template #name="props">
       <span class="send-email">{{ props.email.receiveEmail?.join(',') || '(' + $t('noRecipient') + ')' }}</span>
@@ -28,7 +27,6 @@ import emailScroll from "@/components/email-scroll/index.vue"
 import {emailDelete} from "@/request/email.js";
 import {starAdd, starCancel} from "@/request/star.js";
 import {defineOptions, ref, watch, toRaw} from "vue";
-import {useAccountStore} from "@/store/account.js";
 import {useUiStore} from "@/store/ui.js";
 import {userDraftStore} from "@/store/draft.js";
 import db from "@/db/db.js"
@@ -38,7 +36,6 @@ defineOptions({
 })
 
 const draftStore = userDraftStore();
-const accountStore = useAccountStore();
 const uiStore = useUiStore();
 const scroll = ref({})
 
@@ -66,41 +63,16 @@ watch(() => draftStore.setDraft, async () => {
 })
 
 watch(() => draftStore.refreshList, async () => {
-  scroll.value.refreshList();
+  const {list} = await getEmailList();
+    scroll.value.emailList.length = 0
+    scroll.value.handleList(list);
+    scroll.value.emailList.push(...list)
 })
 
-watch(() => accountStore.currentAccountId, async () => {
-  if (scroll.value.refreshList) {
-    scroll.value.refreshList();
-  }
-})
-
-function getEmailList(emailId, size = 50, num = 1) {
-  if (!accountStore.currentAccountId || !accountStore.currentAccount?.email) {
-    return Promise.resolve({
-      list: [],
-      total: 0,
-      latestEmail: {
-        emailId: 0,
-        accountId: 0,
-        userId: 0,
-      }
-    })
-  }
-
+function getEmailList() {
   return new Promise((resolve, reject) => {
-    db.value.draft.where('accountId').equals(accountStore.currentAccountId).toArray().then(list => {
-      list.sort((a, b) => String(b.createTime || '').localeCompare(String(a.createTime || '')))
-      const start = (num - 1) * size;
-      resolve({
-        list: list.slice(start, start + size),
-        total: list.length,
-        latestEmail: list[0] || {
-          emailId: 0,
-          accountId: 0,
-          userId: 0,
-        }
-      })
+    db.value.draft.orderBy('createTime').reverse().toArray().then(list => {
+      resolve({list})
     })
   })
 }

@@ -2,7 +2,7 @@ import {useSettingStore} from "@/store/setting.js";
 export function cvtR2Url(key) {
 
     if (!key) {
-        return ''
+        return + 'https://' + ''
     }
 
     if (key.startsWith('https://')) {
@@ -14,7 +14,7 @@ export function cvtR2Url(key) {
     let domain = settings.r2Domain
 
     if (!domain) {
-        return key.startsWith('/') ? key : '/' + key;
+        return key;
     }
 
     if (!domain.startsWith('http')) {

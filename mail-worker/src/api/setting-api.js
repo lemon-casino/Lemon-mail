@@ -27,16 +27,6 @@ app.delete('/setting/deleteBackground', async (c) => {
 	return c.json(result.ok());
 });
 
-app.put('/setting/setSiteIcon', async (c) => {
-	const key = await settingService.setSiteIcon(c, await c.req.json());
-	return c.json(result.ok(key));
-});
-
-app.delete('/setting/deleteSiteIcon', async (c) => {
-	await settingService.deleteSiteIcon(c);
-	return c.json(result.ok());
-});
-
 app.get('/setting/globalToken', async (c) => {
 	const data = await settingService.getGlobalToken(c);
 	return c.json(result.ok(data));

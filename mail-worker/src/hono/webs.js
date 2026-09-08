@@ -22,5 +22,5 @@ import '../api/telegram-api'
 import '../api/oauth-api'
 import '../api/account-transfer-api'
 import '../api/admin-api'
-import '../api/account-storage-api'
+import '../api/sub-worker-api'
 export default app;

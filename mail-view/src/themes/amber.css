@@ -1,0 +1,40 @@
+/* ═══════════════════════════════════════════════════
+   Theme: Amber
+   Primary: #f59e0b  Dark: #d97706
+   ═══════════════════════════════════════════════════ */
+
+[data-color-theme="amber"] {
+  --xi-orb-1: rgba(245,158,11,0.62);
+  --xi-orb-2: rgba(217,119,6,0.50);
+  --xi-orb-3: rgba(251,191,36,0.42);
+  --xi-orb-bg-top:    rgba(245,158,11,0.34);
+  --xi-orb-bg-bottom: rgba(217,119,6,0.28);
+  --xi-orb-card-border: rgba(245,158,11,0.24);
+
+  --el-color-primary:         #f59e0b;
+  --el-color-primary-dark-2:  #d97706;
+  --el-color-primary-light-3: #fbbf24;
+  --el-color-primary-light-5: #fcd34d;
+  --el-color-primary-light-7: #fde68a;
+  --el-color-primary-light-8: #fef3c7;
+  --el-color-primary-light-9: #fffbeb;
+
+  --xi-gradient:              linear-gradient(135deg, #f59e0b, #d97706);
+  --xi-gradient-hover:        linear-gradient(135deg, #d97706, #b45309);
+  --xi-shadow-sm:             0 1px 2px rgba(245,158,11,0.05);
+  --xi-shadow:                0 1px 3px rgba(245,158,11,0.08), 0 1px 2px rgba(245,158,11,0.06);
+  --xi-shadow-md:             0 4px 6px -1px rgba(245,158,11,0.08), 0 2px 4px -2px rgba(245,158,11,0.06);
+  --xi-shadow-lg:             0 10px 15px -3px rgba(245,158,11,0.08), 0 4px 6px -4px rgba(245,158,11,0.06);
+  --xi-shadow-card:           0 1px 3px rgba(245,158,11,0.06), 0 0 0 1px rgba(245,158,11,0.04);
+  --xi-shadow-card-hover:     0 8px 25px -5px rgba(245,158,11,0.12), 0 0 0 1px rgba(245,158,11,0.08);
+  --aside-right-border:       0 0 15px rgba(245,158,11,0.06);
+  --choose-account-background: #fef3c7;
+  --email-hover-background:   #fffbeb;
+  --login-switch-color:       #f59e0b;
+}
+
+.dark[data-color-theme="amber"],
+.dark [data-color-theme="amber"] {
+  --email-hover-background: #2d1900;
+  --choose-account-background: #2d1900;
+}

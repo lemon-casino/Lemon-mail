@@ -10,12 +10,10 @@ let db =  shallowRef({})
 function createDB() {
     db.value = new Dexie(userStore.user.email);
     db.value.version(1).stores({
-        draft: '++draftId,createTime',
-        att: 'draftId'
+        draft: '++draftId,createTime'
     })
 
-    db.value.version(2).stores({
-        draft: '++draftId,createTime,accountId',
+    db.value.version(1).stores({
         att: 'draftId'
     })
 }

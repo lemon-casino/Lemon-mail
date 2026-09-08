@@ -26,13 +26,8 @@ const requirePerms = [
 	'/email/send',
 	'/email/delete',
 	'/account/list',
-	'/account/recovery/list',
-	'/account/storage/',
 	'/account/delete',
-	'/account/physicsDelete',
-	'/account/restore',
 	'/account/add',
-	'/account/generatePrefix',
 	'/my/delete',
 	'/analysis/echarts',
 	'/role/add',
@@ -42,41 +37,39 @@ const requirePerms = [
 	'/role/set',
 	'/role/setDefault',
 	'/allEmail/list',
-	'/allEmail/detail',
 	'/allEmail/delete',
 	'/allEmail/batchDelete',
 	'/allEmail/latest',
 	'/setting/setBackground',
 	'/setting/deleteBackground',
-	'/setting/setSiteIcon',
-	'/setting/deleteSiteIcon',
 	'/setting/set',
 	'/setting/query',
 	'/setting/globalToken',
 	'/user/delete',
 	'/user/setPwd',
 	'/user/setStatus',
-	'/user/setAddEmailEnabled',
 	'/user/setType',
 	'/user/list',
 	'/user/resetSendCount',
 	'/user/add',
 	'/user/deleteAccount',
 	'/user/allAccount',
-	'/user/disableAddEmailForNonAdmins',
 	'/regKey/add',
 	'/regKey/list',
 	'/regKey/delete',
 	'/regKey/clearNotUse',
-	'/regKey/history'
+	'/regKey/history',
+	'/sub-worker/list',
+	'/sub-worker/add',
+	'/sub-worker/test',
 ];
 
 const premKey = {
 	'email:delete': ['/email/delete'],
 	'email:send': ['/email/send'],
-	'account:add': ['/account/add', '/account/generatePrefix'],
-	'account:query': ['/account/list', '/account/recovery/list', '/account/storage/'],
-	'account:delete': ['/account/delete', '/account/physicsDelete', '/account/restore'],
+	'account:add': ['/account/add'],
+	'account:query': ['/account/list'],
+	'account:delete': ['/account/delete'],
 	'my:delete': ['/my/delete'],
 	'role:add': ['/role/add'],
 	'role:set': ['/role/set','/role/setDefault'],
@@ -86,13 +79,13 @@ const premKey = {
 	'user:add': ['/user/add'],
 	'user:reset-send': ['/user/resetSendCount'],
 	'user:set-pwd': ['/user/setPwd'],
-	'user:set-status': ['/user/setStatus', '/user/setAddEmailEnabled', '/user/disableAddEmailForNonAdmins'],
+	'user:set-status': ['/user/setStatus'],
 	'user:set-type': ['/user/setType'],
 	'user:delete': ['/user/delete','/user/deleteAccount'],
-	'all-email:query': ['/allEmail/list','/allEmail/detail','/allEmail/latest'],
+	'all-email:query': ['/allEmail/list','/allEmail/latest'],
 	'all-email:delete': ['/allEmail/delete','/allEmail/batchDelete'],
-	'setting:query': ['/setting/query', '/setting/globalToken'],
-	'setting:set': ['/setting/set', '/setting/setBackground','/setting/deleteBackground', '/setting/setSiteIcon', '/setting/deleteSiteIcon', '/setting/globalToken/enabled', '/setting/globalToken/generate'],
+	'setting:query': ['/setting/query', '/setting/globalToken', '/sub-worker/list'],
+	'setting:set': ['/setting/set', '/setting/setBackground','/setting/deleteBackground', '/setting/globalToken/enabled', '/setting/globalToken/generate', '/sub-worker/add', '/sub-worker/test'],
 	'analysis:query': ['/analysis/echarts'],
 	'reg-key:add': ['/regKey/add'],
 	'reg-key:query': ['/regKey/list','/regKey/history'],
@@ -113,17 +106,8 @@ app.use('*', async (c, next) => {
 
 	if (path.startsWith('/public')) {
 
-		const publicToken = c.req.header(constant.TOKEN_HEADER);
-		const publicAuth = publicToken
-			? await c.env.kv.get(KvConst.PUBLIC_AUTH + publicToken, { type: 'json' })
-			: null;
-		if (publicAuth?.userId) {
-			c.set('publicUser', publicAuth);
-			c.set('user', publicAuth);
-			return await next();
-		}
-
 		const userPublicToken = await c.env.kv.get(KvConst.PUBLIC_KEY);
+		const publicToken = c.req.header(constant.TOKEN_HEADER);
 		if (publicToken !== userPublicToken) {
 			throw new BizError(t('publicTokenFail'), 401);
 		}

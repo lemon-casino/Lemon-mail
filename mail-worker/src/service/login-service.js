@@ -65,7 +65,9 @@ const loginService = {
 			throw new BizError(t('pwdMinLength'));
 		}
 
-		if (!c.env.domain.includes(emailUtils.getDomain(email))) {
+		const isAdmin = email === c.env.admin;
+		const setting = await settingService.query(c);
+		if (!isAdmin && !settingService.isDomainValid(setting, emailUtils.getDomain(email))) {
 			throw new BizError(t('notEmailDomain'));
 		}
 
@@ -117,9 +119,6 @@ const loginService = {
 		}
 
 		let regVerifyOpen = false
-
-		// Admin email bypasses Turnstile verification on registration
-		const isAdmin = email === c.env.admin;
 
 		if (!isAdmin) {
 			if (registerVerify === settingConst.registerVerify.OPEN) {
@@ -173,7 +172,7 @@ const loginService = {
 		}
 
 		if (regKeyRow.count <= 0) {
-			throw new BizError(t('noRegKeyCount'));
+			throw new BizError(t('noRegKeyTotal'));
 		}
 
 		const today = toUtc().tz('Asia/Shanghai').startOf('day')

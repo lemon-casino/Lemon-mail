@@ -1,13 +1,16 @@
 import KvConst from '../const/kv-const';
 import setting from '../entity/setting';
+import subWorker from '../entity/sub-worker';
 import orm from '../entity/orm';
-import {settingConst, verifyRecordType} from '../const/entity-const';
+import {verifyRecordType} from '../const/entity-const';
+import { eq } from 'drizzle-orm';
 import fileUtils from '../utils/file-utils';
 import r2Service from './r2-service';
 import constant from '../const/constant';
 import BizError from '../error/biz-error';
 import {t} from '../i18n/i18n'
 import verifyRecordService from './verify-record-service';
+import { AI_CODE_MODELS, resolveAiModel } from '../const/ai-models';
 
 function generateToken(len = 32) {
 	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -17,12 +20,6 @@ function generateToken(len = 32) {
 }
 
 const settingService = {
-
-	assertSuperAdmin(c) {
-		if (c.get('user')?.email !== c.env.admin) {
-			throw new BizError(t('unauthorized'), 403);
-		}
-	},
 
 	async refresh(c) {
 		const settingRow = await orm(c).select().from(setting).get();
@@ -37,29 +34,48 @@ const settingService = {
 			return c.get('setting')
 		}
 
-		const setting = await c.env.kv.get(KvConst.SETTING, { type: 'json' });
+		const settingRow = await c.env.kv.get(KvConst.SETTING, { type: 'json' });
 
-		if (!setting) {
+		if (!settingRow) {
 			throw new BizError('数据库未初始化 Database not initialized.');
 		}
 
-		let domainList = c.env.domain;
-
-		if (typeof domainList === 'string') {
+		// 一次性将验证码识别改为默认开启（v4.2 曾默认关闭）
+		if (settingRow.aiCode === 1 && !await c.env.kv.get('v4_3_ai_code_default')) {
 			try {
-				domainList = JSON.parse(domainList)
-			} catch (error) {
-				throw new BizError(t('notJsonDomain'));
+				settingRow.aiCode = 0;
+				await orm(c).update(setting).set({ aiCode: 0 }).run();
+				await c.env.kv.put('v4_3_ai_code_default', '1');
+				await this.refresh(c);
+			} catch (e) {}
+		}
+
+		if (settingRow.aiModel === undefined || settingRow.aiModel === null) {
+			try {
+				await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN ai_model TEXT NOT NULL DEFAULT '@cf/meta/llama-3.1-8b-instruct-fast';`).run();
+				await this.refresh(c);
+			} catch (e) {}
+			settingRow.aiModel = resolveAiModel('', c.env.ai_model);
+		}
+
+		// Parse managed domains (web-configured), fall back to env domain
+		let managedDomains = [];
+		if (settingRow.managedDomains) {
+			try { managedDomains = JSON.parse(settingRow.managedDomains); } catch (e) { managedDomains = []; }
+		}
+		settingRow.managedDomains = managedDomains;
+
+		let domainList;
+		if (managedDomains.length > 0) {
+			domainList = managedDomains.filter(d => d.enabled !== false).map(d => '@' + d.domain);
+		} else {
+			let envDomain = c.env.domain;
+			if (typeof envDomain === 'string') {
+				try { envDomain = JSON.parse(envDomain); } catch (error) { envDomain = []; }
 			}
+			domainList = envDomain ? envDomain.map(item => '@' + item) : [];
 		}
-
-		if (!c.env.domain) {
-			throw new BizError(t('noDomainVariable'));
-		}
-
-		domainList = domainList.map(item => '@' + item);
-		setting.domainList = domainList;
-
+		settingRow.domainList = domainList;
 
 		let linuxdoSwitch = c.env.linuxdo_switch;
 
@@ -71,22 +87,21 @@ const settingService = {
 			linuxdoSwitch = false
 		}
 
-		setting.linuxdoClientId = c.env.linuxdo_client_id;
-		setting.linuxdoCallbackUrl = c.env.linuxdo_callback_url;
-		setting.linuxdoSwitch = linuxdoSwitch;
+		settingRow.linuxdoClientId = c.env.linuxdo_client_id;
+		settingRow.linuxdoCallbackUrl = c.env.linuxdo_callback_url;
+		settingRow.linuxdoSwitch = linuxdoSwitch;
 
-		setting.emailPrefixFilter = setting.emailPrefixFilter.split(",").filter(Boolean);
-		setting.emailKeywordBlacklist = (setting.emailKeywordBlacklist || '').split(",").filter(Boolean);
-		setting.senderDomainBlacklist = (setting.senderDomainBlacklist || '').split(",").filter(Boolean);
-		if (setting.publicApiAdminDomain === undefined || setting.publicApiAdminDomain === null) {
-			setting.publicApiAdminDomain = settingConst.publicApiAdminDomain.CLOSE;
-		}
-		if (typeof setting.domainMapping === 'string') {
-			setting.domainMapping = JSON.parse(setting.domainMapping || '{}');
+		settingRow.emailPrefixFilter = settingRow.emailPrefixFilter.split(",").filter(Boolean);
+		settingRow.emailKeywordBlacklist = (settingRow.emailKeywordBlacklist || '').split(",").filter(Boolean);
+		settingRow.senderDomainBlacklist = (settingRow.senderDomainBlacklist || '').split(",").filter(Boolean);
+		settingRow.senderDomainWhitelist = (settingRow.senderDomainWhitelist || '').split(",").filter(Boolean);
+		settingRow.senderFilterMode = settingRow.senderFilterMode || 0;
+		if (typeof settingRow.domainMapping === 'string') {
+			settingRow.domainMapping = JSON.parse(settingRow.domainMapping || '{}');
 		}
 
-		c.set?.('setting', setting);
-		return setting;
+		c.set?.('setting', settingRow);
+		return settingRow;
 	},
 
 	async get(c, showSiteKey = false) {
@@ -110,6 +125,9 @@ const settingService = {
 		settingRow.s3AccessKey = settingRow.s3AccessKey ? `${settingRow.s3AccessKey.slice(0, 12)}******` : null;
 		settingRow.s3SecretKey = settingRow.s3SecretKey ? `${settingRow.s3SecretKey.slice(0, 12)}******` : null;
 		settingRow.hasR2 = !!c.env.r2
+		settingRow.hasAi = !!c.env.ai
+		settingRow.aiModel = resolveAiModel(settingRow.aiModel, c.env.ai_model)
+		settingRow.aiModels = AI_CODE_MODELS
 
 		let regVerifyOpen = false
 		let addVerifyOpen = false
@@ -132,14 +150,22 @@ const settingService = {
 	},
 
 	async set(c, params) {
-		const settingData = await this.query(c);
-		if (Object.prototype.hasOwnProperty.call(params, 'publicApiAdminDomain')) {
-			if (params.publicApiAdminDomain !== settingData.publicApiAdminDomain) {
-				this.assertSuperAdmin(c);
-			} else {
-				delete params.publicApiAdminDomain;
-			}
+		delete params.hasAi
+		delete params.hasR2
+		delete params.aiModels
+		delete params.domainList
+		delete params.linuxdoSwitch
+		delete params.linuxdoClientId
+		delete params.linuxdoCallbackUrl
+		delete params.regVerifyOpen
+		delete params.addVerifyOpen
+		delete params.storageType
+
+		if (params.aiModel) {
+			params.aiModel = resolveAiModel(params.aiModel);
 		}
+
+		const settingData = await this.query(c);
 		let resendTokens = { ...settingData.resendTokens, ...params.resendTokens };
 		Object.keys(resendTokens).forEach(domain => {
 			if (!resendTokens[domain]) delete resendTokens[domain];
@@ -157,8 +183,16 @@ const settingService = {
 			params.senderDomainBlacklist = params.senderDomainBlacklist + '';
 		}
 
+		if (Array.isArray(params.senderDomainWhitelist)) {
+			params.senderDomainWhitelist = params.senderDomainWhitelist + '';
+		}
+
 		if (params.domainMapping && typeof params.domainMapping === 'object') {
 			params.domainMapping = JSON.stringify(params.domainMapping);
+		}
+
+		if (Array.isArray(params.managedDomains)) {
+			params.managedDomains = JSON.stringify(params.managedDomains);
 		}
 
 		params.resendTokens = JSON.stringify(resendTokens);
@@ -167,7 +201,6 @@ const settingService = {
 	},
 
 	async deleteBackground(c) {
-		this.assertSuperAdmin(c);
 
 		const { background } = await this.query(c);
 		if (!background) return
@@ -186,7 +219,6 @@ const settingService = {
 	},
 
 	async setBackground(c, params) {
-		this.assertSuperAdmin(c);
 
 		let { background } = params
 
@@ -211,43 +243,6 @@ const settingService = {
 		await orm(c).update(setting).set({ background }).run();
 		await this.refresh(c);
 		return background;
-	},
-
-	async deleteSiteIcon(c) {
-		this.assertSuperAdmin(c);
-
-		const { siteIcon } = await this.query(c);
-		if (!siteIcon) return;
-
-		if (!siteIcon.startsWith('http')) {
-			await r2Service.delete(c, siteIcon);
-		}
-
-		await orm(c).update(setting).set({ siteIcon: '' }).run();
-		await this.refresh(c);
-	},
-
-	async setSiteIcon(c, params) {
-		this.assertSuperAdmin(c);
-
-		let { siteIcon } = params;
-		await this.deleteSiteIcon(c);
-
-		if (siteIcon && !siteIcon.startsWith('http')) {
-			const file = fileUtils.base64ToFile(siteIcon, 'site-icon');
-			const arrayBuffer = await file.arrayBuffer();
-			siteIcon = constant.SITE_ICON_PREFIX + await fileUtils.getBuffHash(arrayBuffer) + fileUtils.getExtFileName(file.name);
-
-			await r2Service.putObj(c, siteIcon, arrayBuffer, {
-				contentType: file.type,
-				cacheControl: 'public, max-age=31536000, immutable',
-				contentDisposition: `inline; filename="${file.name}"`
-			});
-		}
-
-		await orm(c).update(setting).set({ siteIcon: siteIcon || '' }).run();
-		await this.refresh(c);
-		return siteIcon;
 	},
 
 	async getGlobalToken(c) {
@@ -280,7 +275,6 @@ const settingService = {
 			registerVerify: settingRow.registerVerify,
 			send: settingRow.send,
 			r2Domain: settingRow.r2Domain,
-			siteIcon: settingRow.siteIcon || '',
 			siteKey: settingRow.siteKey,
 			domainList: settingRow.domainList,
 			regKey: settingRow.regKey,
@@ -303,8 +297,42 @@ const settingService = {
 		emailKeywordBlacklist: settingRow.emailKeywordBlacklist || [],
 		domainMapping: settingRow.domainMapping || {},
 		regKeyHint: settingRow.regKeyHint || '',
-		regKeyLink: settingRow.regKeyLink || ''
+		regKeyHintEn: settingRow.regKeyHintEn || '',
+		regKeyLink: settingRow.regKeyLink || '',
+		managedDomains: settingRow.managedDomains || [],
+		colorTheme: settingRow.colorTheme || 'indigo',
+		loginTemplate: settingRow.loginTemplate || 'gradient',
+		layoutMode: settingRow.layoutMode || 'default',
+		newEmailNotify: settingRow.newEmailNotify ?? 0,
+		subWorkers: await this.getSubWorkersSafe(c),
 		};
+	},
+
+	getValidDomains(setting) {
+		return (setting.domainList || []).map(d => d.replace(/^@/, ''));
+	},
+
+	isDomainValid(setting, domain) {
+		const validDomains = this.getValidDomains(setting);
+		if (validDomains.length === 0) return true;
+		return validDomains.includes(domain);
+	},
+
+	async getSubWorkersSafe(c) {
+		try {
+			const rows = await orm(c).select({
+				id: subWorker.id,
+				name: subWorker.name,
+				domains: subWorker.domains,
+				status: subWorker.status,
+			}).from(subWorker).where(eq(subWorker.status, 1)).all();
+			return rows.map(r => ({
+				...r,
+				domains: (() => { try { return JSON.parse(r.domains); } catch { return []; } })(),
+			}));
+		} catch {
+			return [];
+		}
 	}
 };
 

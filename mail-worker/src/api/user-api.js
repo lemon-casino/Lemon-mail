@@ -19,11 +19,6 @@ app.put('/user/setStatus', async (c) => {
 	return c.json(result.ok());
 });
 
-app.put('/user/setAddEmailEnabled', async (c) => {
-	await userService.setAddEmailEnabled(c, await c.req.json());
-	return c.json(result.ok());
-});
-
 app.put('/user/setType', async (c) => {
 	await userService.setType(c, await c.req.json());
 	return c.json(result.ok());
@@ -66,10 +61,5 @@ app.put('/user/batchSetStatus', async (c) => {
 
 app.put('/user/batchRestore', async (c) => {
 	await userService.batchRestore(c, await c.req.json());
-	return c.json(result.ok());
-});
-
-app.put('/user/disableAddEmailForNonAdmins', async (c) => {
-	await userService.disableAddEmailForNonAdmins(c);
 	return c.json(result.ok());
 });

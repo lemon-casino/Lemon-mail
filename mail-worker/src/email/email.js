@@ -10,6 +10,19 @@ import emailUtils from '../utils/email-utils';
 import roleService from '../service/role-service';
 import userService from '../service/user-service';
 import telegramService from '../service/telegram-service';
+import aiService from '../service/ai-service';
+
+function matchDomainList(list, address) {
+	if (!address) return false;
+	const atIdx = address.lastIndexOf('@');
+	if (atIdx === -1) return false;
+	const senderDomain = address.slice(atIdx + 1).toLowerCase().trim().replace(/[>)]+$/, '');
+	return list.some(item => {
+		const d = item.toLowerCase().trim().replace(/^@/, '');
+		if (!d) return false;
+		return senderDomain === d || senderDomain.endsWith('.' + d);
+	});
+}
 
 export async function email(message, env, ctx) {
 
@@ -26,7 +39,12 @@ export async function email(message, env, ctx) {
 			r2Domain,
 			noRecipient,
 			domainMapping,
-			senderDomainBlacklist
+			senderDomainBlacklist,
+			senderFilterMode,
+			senderDomainWhitelist,
+			aiCode,
+			aiCodeFilter,
+			aiModel
 		} = await settingService.query({ env });
 
 		if (receive === settingConst.receive.CLOSE) {
@@ -34,17 +52,14 @@ export async function email(message, env, ctx) {
 			return;
 		}
 
-		// Block emails from blacklisted sender domains
-		if (senderDomainBlacklist && senderDomainBlacklist.length > 0) {
-			const senderFrom = message.from || '';
-			const atIdx = senderFrom.lastIndexOf('@');
-			if (atIdx !== -1) {
-				const senderDomain = senderFrom.slice(atIdx + 1).toLowerCase().trim().replace(/[>)]+$/, '');
-				if (senderDomainBlacklist.some(d => senderDomain === d.toLowerCase().trim())) {
-					message.setReject('Sender domain blocked');
-					return;
-				}
-			}
+		const isWhitelistMode = senderFilterMode === 1;
+
+		// Blacklist mode: reject on envelope sender match (cheap early reject).
+		// Whitelist mode is checked after parsing since either envelope or header From may authorize.
+		if (!isWhitelistMode && senderDomainBlacklist && senderDomainBlacklist.length > 0
+			&& matchDomainList(senderDomainBlacklist, message.from)) {
+			message.setReject('Sender domain blocked');
+			return;
 		}
 
 		// Apply domain mapping: replace the domain part of message.to if a mapping exists
@@ -72,6 +87,28 @@ export async function email(message, env, ctx) {
 
 		const email = await PostalMime.parse(content);
 
+		if (isWhitelistMode) {
+			// Whitelist mode: only authorized sender domains may deliver.
+			// Passes if the envelope sender OR the header From matches the whitelist,
+			// so admins can authorize either the provider bounce domain or the visible domain.
+			// An empty whitelist accepts everything to avoid accidentally rejecting all mail.
+			if (senderDomainWhitelist && senderDomainWhitelist.length > 0
+				&& !matchDomainList(senderDomainWhitelist, message.from)
+				&& !matchDomainList(senderDomainWhitelist, email.from?.address)) {
+				message.setReject('Sender not authorized');
+				return;
+			}
+		} else {
+			// Second blacklist check on the parsed header From address.
+			// Spam often uses a bounce/relay envelope sender on a different domain,
+			// while the visible From header (what users see and block) differs.
+			if (senderDomainBlacklist && senderDomainBlacklist.length > 0
+				&& matchDomainList(senderDomainBlacklist, email.from?.address)) {
+				message.setReject('Sender domain blocked');
+				return;
+			}
+		}
+
 		// If domain mapping was applied, update the To list in the parsed email
 		// so the stored `recipient` field reflects the mapped address
 		if (recipientTo !== message.to && Array.isArray(email.to)) {
@@ -80,7 +117,15 @@ export async function email(message, env, ctx) {
 			);
 		}
 
-		const account = await accountService.selectByEmailIncludeDel({ env: env }, recipientTo);
+		let account = await accountService.selectByEmailIncludeDel({ env: env }, recipientTo);
+
+		// 子地址机制：user+tag@domain 找不到账号时投递到 user@domain
+		if (!account) {
+			const baseEmail = emailUtils.getBaseEmail(recipientTo);
+			if (baseEmail && baseEmail !== recipientTo) {
+				account = await accountService.selectByEmailIncludeDel({ env: env }, baseEmail);
+			}
+		}
 
 		if (!account && noRecipient === settingConst.noRecipient.CLOSE) {
 			message.setReject('Recipient not found');
@@ -118,6 +163,8 @@ export async function email(message, env, ctx) {
 			|| email.to.find(item => item.address === message.to)?.name
 			|| '';
 
+		const code = await aiService.extractCode({ env }, email, { aiCode, aiCodeFilter, aiModel });
+
 		const params = {
 			toEmail: recipientTo,
 			toName: toName,
@@ -134,6 +181,7 @@ export async function email(message, env, ctx) {
 			messageId: email.messageId,
 			userId: account ? account.userId : 0,
 			accountId: account ? account.accountId : 0,
+			code: code || '',
 			isDel: isDel.DELETE,
 			status: emailConst.status.SAVING
 		};

@@ -1,12 +1,12 @@
 import {useUserStore} from "@/store/user.js";
 import {useSettingStore} from "@/store/setting.js";
 import {useAccountStore} from "@/store/account.js";
+import {useServerStore} from "@/store/server.js";
 import {loginUserInfo} from "@/request/my.js";
 import {permsToRouter} from "@/perm/perm.js";
 import router from "@/router";
 import {websiteConfig} from "@/request/setting.js";
 import i18n from "@/i18n/index.js";
-import { applySiteBranding } from "@/utils/branding.js";
 
 export async function init() {
     document.title = '\u200B'
@@ -14,8 +14,11 @@ export async function init() {
     const settingStore = useSettingStore();
     const userStore = useUserStore();
     const accountStore = useAccountStore();
+    const serverStore = useServerStore();
 
-    const token = localStorage.getItem('token');
+    serverStore.init();
+
+    const token = serverStore.getToken();
     if (!settingStore.lang) {
         let lang = navigator.language.split('-')[0]
         lang = lang === 'zh' ? lang : 'en'
@@ -23,6 +26,11 @@ export async function init() {
     }
 
     i18n.global.locale.value = settingStore.lang
+
+    if (serverStore.needSetup) {
+        removeLoading();
+        return;
+    }
 
     let setting = null;
 
@@ -36,12 +44,17 @@ export async function init() {
         setting = s;
         settingStore.settings = setting;
         settingStore.domainList = setting.domainList;
-        applySiteBranding(setting);
+        document.title = setting.title;
 
         if (user) {
             accountStore.currentAccountId = user.account.accountId;
             accountStore.currentAccount = user.account;
             userStore.user = user;
+
+            if (user.lang) {
+                settingStore.lang = user.lang;
+                i18n.global.locale.value = user.lang;
+            }
 
             const routers = permsToRouter(user.permKeys);
             routers.forEach(routerData => {
@@ -50,10 +63,19 @@ export async function init() {
         }
 
     } else {
-        setting = await websiteConfig();
-        settingStore.settings = setting;
-        settingStore.domainList = setting.domainList;
-        applySiteBranding(setting);
+        try {
+            setting = await websiteConfig();
+            settingStore.settings = setting;
+            settingStore.domainList = setting.domainList;
+            document.title = setting.title;
+        } catch {
+            if (!serverStore.isStandalone) {
+                serverStore.forceStandalone();
+                removeLoading();
+                router.replace({ name: 'setup' });
+                return;
+            }
+        }
     }
 
     removeLoading();

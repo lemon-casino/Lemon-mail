@@ -2,29 +2,26 @@ import axios from "axios";
 import router from "@/router";
 import i18n from "@/i18n/index.js";
 import {useSettingStore} from "@/store/setting.js";
+import {useServerStore} from "@/store/server.js";
 
-let http = axios.create({
-    baseURL: import.meta.env.VITE_BASE_URL
-});
+const instanceCache = new Map()
 
-http.interceptors.request.use(config => {
-    const { lang } = useSettingStore();
-    config.headers.Authorization = `${localStorage.getItem('token')}`
-    config.headers['accept-language'] = lang
-    return config
-})
+function applyInterceptors(instance, serverId) {
+    instance.interceptors.request.use(config => {
+        const { lang } = useSettingStore();
+        const serverStore = useServerStore();
+        config.headers.Authorization = serverStore.getToken(serverId)
+        config.headers['accept-language'] = lang
+        return config
+    })
 
-http.interceptors.response.use((res) => {
-
+    instance.interceptors.response.use((res) => {
         return new Promise((resolve, reject) => {
-
             const noMsg = res.config.noMsg;
             const data = res.data
 
             if (noMsg) {
-
                 data.code === 200 ? resolve(data.data) : reject(data)
-
             } else if (data.code === 401) {
                 ElMessage({
                     message: data.message,
@@ -33,7 +30,11 @@ http.interceptors.response.use((res) => {
                     grouping: true,
                     repeatNum: -4,
                 })
-                localStorage.removeItem('token')
+                const serverStore = useServerStore();
+                serverStore.clearToken(serverId)
+                if (!serverStore.isStandalone) {
+                    localStorage.removeItem('token')
+                }
                 router.replace('/login')
                 reject(data)
             } else if (data.code === 403) {
@@ -45,7 +46,6 @@ http.interceptors.response.use((res) => {
                     repeatNum: -4,
                 })
                 reject(data)
-
             } else if (data.code === 502) {
                 ElMessage({
                     dangerouslyUseHTMLString: true,
@@ -70,17 +70,16 @@ http.interceptors.response.use((res) => {
         })
     },
     (error) => {
-
         if (error.status === 403) {
             location.reload();
             return;
         }
 
-        const noMsg = error.config.noMsg;
+        const noMsg = error.config?.noMsg;
 
         if (noMsg) {
             return Promise.reject(error)
-        } else if (error.message.includes('Network Error')) {
+        } else if (error.message?.includes('Network Error')) {
             ElMessage({
                 message: i18n.global.t('networkErrorMsg'),
                 type: 'error',
@@ -95,7 +94,6 @@ http.interceptors.response.use((res) => {
                 plain: true,
                 grouping: true
             })
-            ElMessage.error('')
         } else if (error.response) {
             ElMessage({
                 message: i18n.global.t('serverBusyErrorMsg'),
@@ -116,6 +114,41 @@ http.interceptors.response.use((res) => {
         return Promise.reject(error)
     })
 
+    return instance
+}
+
+function getOrCreateInstance(serverId, baseURL) {
+    const key = serverId + '|' + baseURL
+    if (instanceCache.has(key)) return instanceCache.get(key)
+    const instance = axios.create({ baseURL })
+    applyInterceptors(instance, serverId)
+    instanceCache.set(key, instance)
+    return instance
+}
+
+export function getHttp(serverId) {
+    const serverStore = useServerStore();
+    if (serverId) {
+        const server = serverStore.servers.find(s => s.id === serverId)
+        if (server) return getOrCreateInstance(server.id, server.url)
+    }
+    const active = serverStore.activeServer
+    if (active) return getOrCreateInstance(active.id, active.url)
+    return getOrCreateInstance('fallback', import.meta.env.VITE_BASE_URL || '/api')
+}
+
+export function getHttpForServer(serverId) {
+    return getHttp(serverId)
+}
+
+export function clearInstanceCache() {
+    instanceCache.clear()
+}
+
+const http = new Proxy({}, {
+    get(_, prop) {
+        return getHttp()[prop]
+    }
+})
+
 export default http
-
-

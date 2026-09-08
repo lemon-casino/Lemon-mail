@@ -9,16 +9,15 @@
                :time-sort="params.timeSort"
                :email-read="emailRead"
                :show-unread="true"
-               pagination
                actionLeft="4px"
                @jump="jumpContent"
   >
     <template #first>
       <el-tooltip :content="$t('sortByTime')" placement="top">
-        <Icon class="icon" @click="changeTimeSort" icon="material-symbols-light:timer-arrow-down-outline"
-              v-if="params.timeSort === 0" width="28" height="28"/>
-        <Icon class="icon" @click="changeTimeSort" icon="material-symbols-light:timer-arrow-up-outline" v-else
-              width="28" height="28"/>
+        <Icon class="icon" @click="changeTimeSort" icon="mingcute:sort-descending-line"
+              v-if="params.timeSort === 0" width="18" height="18"/>
+        <Icon class="icon" @click="changeTimeSort" icon="mingcute:sort-ascending-line" v-else
+              width="18" height="18"/>
       </el-tooltip>
     </template>
 
@@ -32,11 +31,13 @@ import {useSettingStore} from "@/store/setting.js";
 import emailScroll from "@/components/email-scroll/index.vue"
 import {emailList, emailDelete, emailLatest, emailRead} from "@/request/email.js";
 import {starAdd, starCancel} from "@/request/star.js";
-import {defineOptions, onMounted, reactive, ref, watch} from "vue";
+import {defineOptions, h, onMounted, reactive, ref, watch} from "vue";
 import {sleep} from "@/utils/time-utils.js";
+import {notifyNewEmail, requestNotifyPermission} from "@/utils/email-notify.js";
 import router from "@/router/index.js";
 import {Icon} from "@iconify/vue";
 import { useRoute } from 'vue-router'
+
 defineOptions({
   name: 'email'
 })
@@ -52,6 +53,9 @@ const params = reactive({
 
 onMounted(() => {
   emailStore.emailScroll = scroll;
+  if (notifyOpen()) {
+    requestNotifyPermission()
+  }
   latest()
 })
 
@@ -71,16 +75,14 @@ function jumpContent(email) {
   emailStore.contentData.showUnread = true
   emailStore.contentData.showStar = true
   emailStore.contentData.showReply = true
-  router.push({
-    path: '/message',
-    query: {
-      emailId: email.emailId,
-      storageScope: 'inbox'
-    }
-  })
+  router.push('/message')
 }
 
 const existIds = new Set();
+
+function notifyOpen() {
+  return settingStore.settings.newEmailNotify === 0
+}
 
 async function latest() {
   while (true) {
@@ -92,14 +94,23 @@ async function latest() {
       continue;
     }
 
+    // 页面不可见时降频：开启新邮件通知则最长 60 秒轮询一次，否则暂停请求
+    if (document.hidden) {
+      let waited = 0;
+      while (document.hidden && waited < 60000) {
+        await sleep(1000);
+        waited += 1000;
+      }
+      if (document.hidden && !notifyOpen()) {
+        continue;
+      }
+    }
+
     const latestId = scroll.value.latestEmail?.emailId
 
     if (!scroll.value.firstLoad && autoRefresh > 1) {
       try {
         const accountId = accountStore.currentAccountId
-        if (!accountId) {
-          continue;
-        }
         const allReceive = scroll.value.latestEmail?.allReceive
         const curTimeSort = params.timeSort
         let list = []
@@ -122,6 +133,10 @@ async function latest() {
 
                 existIds.add(email.emailId)
                 scroll.value.addItem(email)
+
+                if (notifyOpen()) {
+                  notifyNewEmail(email, { onClick: () => jumpContent(email) })
+                }
 
                 await sleep(50)
               }
@@ -149,22 +164,10 @@ function cancelStar(email) {
   emailStore.starScroll?.deleteEmail([email.emailId])
 }
 
-function getEmailList(emailId, size, num) {
-  if (!accountStore.currentAccountId || !accountStore.currentAccount?.email) {
-    return Promise.resolve({
-      list: [],
-      total: 0,
-      latestEmail: {
-        emailId: 0,
-        accountId: 0,
-        userId: 0,
-      }
-    });
-  }
-
+function getEmailList(emailId, size) {
   const accountId =  accountStore.currentAccountId;
   const allReceive = accountStore.currentAccount?.allReceive;
-  return emailList(accountId, allReceive, emailId, params.timeSort, size, 0, num).then(data => {
+  return emailList(accountId, allReceive, emailId, params.timeSort, size, 0).then(data => {
     data.latestEmail.reqAccountId = accountId;
     data.latestEmail.allReceive = allReceive;
     return data;
@@ -172,7 +175,7 @@ function getEmailList(emailId, size, num) {
 }
 
 </script>
-<style scoped>
+<style>
 .icon {
   cursor: pointer;
 }

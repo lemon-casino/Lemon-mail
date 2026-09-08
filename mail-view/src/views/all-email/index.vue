@@ -16,7 +16,6 @@
                  @refresh-before="refreshBefore"
                  @right-search="rightSearch"
                  :type="'all-email'"
-                 pagination
 
     >
       <template #first>
@@ -35,7 +34,6 @@
               >
                 <el-option key="3" :label="$t('sender')" :value="'name'"/>
                 <el-option key="4" :label="$t('subject')" :value="'subject'"/>
-                <el-option key="5" :label="$t('emailText')" :value="'content'"/>
                 <el-option key="1" :label="$t('user')" :value="'user'"/>
                 <el-option key="2" :label="$t('selectEmail')" :value="'account'"/>
               </el-select>
@@ -54,16 +52,16 @@
           <el-option key="4" :label="$t('noRecipientTitle')" value="noone"/>
         </el-select>
         <el-tooltip :content="$t('searchAction')" placement="top">
-          <Icon class="icon" icon="iconoir:search" @click="search" width="20" height="20"/>
+          <Icon class="icon" icon="mingcute:search-line" @click="search" width="18" height="18"/>
         </el-tooltip>
         <el-tooltip :content="$t('sortByTime')" placement="top">
-          <Icon class="icon" @click="changeTimeSort" icon="material-symbols-light:timer-arrow-down-outline"
-                v-if="params.timeSort === 0" width="28" height="28"/>
-          <Icon class="icon" @click="changeTimeSort" icon="material-symbols-light:timer-arrow-up-outline" v-else
-                width="28" height="28"/>
+          <Icon class="icon" @click="changeTimeSort" icon="mingcute:sort-descending-line"
+                v-if="params.timeSort === 0" width="18" height="18"/>
+          <Icon class="icon" @click="changeTimeSort" icon="mingcute:sort-ascending-line" v-else
+                width="18" height="18"/>
         </el-tooltip>
         <el-tooltip :content="$t('batchDelete')" placement="top">
-          <Icon class="icon clear" icon="fluent:broom-sparkle-16-regular" width="22" height="22" @click="openBathDelete"/>
+          <Icon class="icon clear" icon="mingcute:broom-line" width="18" height="18" @click="openBathDelete"/>
         </el-tooltip>
       </template>
     </emailScroll>
@@ -144,7 +142,6 @@ const params = reactive({
   accountEmail: null,
   name: null,
   subject: null,
-  content: null,
   searchType: 'name'
 })
 
@@ -179,7 +176,6 @@ const selectTitle = computed(() => {
   if (params.searchType === 'account') return t('selectEmail')
   if (params.searchType === 'name') return t('sender')
   if (params.searchType === 'subject') return t('subject')
-  if (params.searchType === 'content') return t('emailText')
 })
 
 const paramsStar = localStorage.getItem('all-email-params')
@@ -251,7 +247,6 @@ function refreshBefore() {
   params.accountEmail = null
   params.name = null
   params.subject = null
-  params.content = null
   params.searchType = 'name'
 }
 
@@ -261,7 +256,6 @@ function search() {
   params.accountEmail = null
   params.name = null
   params.subject = null
-  params.content = null
 
   if (params.searchType === 'user') {
     params.userEmail = searchValue.value
@@ -277,10 +271,6 @@ function search() {
 
   if (params.searchType === 'subject') {
     params.subject = searchValue.value
-  }
-
-  if (params.searchType === 'content') {
-    params.content = searchValue.value
   }
 
   sysEmailScroll.value.refreshList();
@@ -300,18 +290,12 @@ function jumpContent(email) {
   emailStore.contentData.delType = 'physics'
   emailStore.contentData.showStar = false
   emailStore.contentData.showReply = false
-  router.push({
-    name: 'content',
-    query: {
-      emailId: email.emailId,
-      storageScope: 'all'
-    }
-  })
+  router.push({name: 'content'})
 }
 
 
-function getEmailList(emailId, size, num) {
-  return allEmailList({emailId, size, num, ...params})
+function getEmailList(emailId, size) {
+  return allEmailList({emailId, size, ...params})
 }
 
 async function latest() {
@@ -336,6 +320,10 @@ async function latest() {
       continue
     }
 
+    // 页面不可见时暂停请求，恢复可见后继续
+    if (document.hidden) {
+      continue
+    }
 
     if (params.type !== 'receive') {
       continue
@@ -456,8 +444,13 @@ async function latest() {
   max-width: 280px;
 
   :deep(.el-input__wrapper) {
-    min-height: 28px;
-    padding: 2px 8px;
+    height: 28px;
+    box-sizing: border-box;
+    padding: 0 8px;
+  }
+
+  :deep(.el-input__inner) {
+    height: 28px;
   }
 
   .setting-icon {
@@ -487,8 +480,10 @@ async function latest() {
   width: 92px;
 
   :deep(.el-select__wrapper) {
-    min-height: 28px;
-    padding: 2px 6px;
+    height: 28px;
+    box-sizing: border-box;
+    padding: 0 6px;
+    min-height: unset;
   }
 }
 
@@ -502,8 +497,9 @@ async function latest() {
 }
 
 :deep(.el-select__wrapper) {
-  padding: 2px 10px;
-  min-height: 28px;
+  height: 28px;
+  box-sizing: border-box;
+  min-height: unset;
 }
 
 :deep(.el-date-editor.el-input__wrapper) {

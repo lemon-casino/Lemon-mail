@@ -10,16 +10,14 @@ import {accountConst, isDel, settingConst} from '../const/entity-const';
 import settingService from './setting-service';
 import turnstileService from './turnstile-service';
 import roleService from './role-service';
-import accountStorageService from './account-storage-service';
 import { t } from '../i18n/i18n';
 import verifyRecordService from './verify-record-service';
-import prefixUtils from '../utils/prefix-utils';
 
 const accountService = {
 
 	async add(c, params, userId) {
 
-		const { addEmailVerify , addEmail, manyEmail, addVerifyCount, minEmailPrefix, emailPrefixFilter, emailKeywordBlacklist } = await settingService.query(c);
+		const { addEmailVerify , addEmail, manyEmail, addVerifyCount, minEmailPrefix, emailPrefixFilter, emailKeywordBlacklist, domainList } = await settingService.query(c);
 
 		let { email, token } = params;
 
@@ -37,7 +35,8 @@ const accountService = {
 			throw new BizError(t('notEmail'));
 		}
 
-		if (!c.env.domain.includes(emailUtils.getDomain(email))) {
+		// domainList is prefixed with '@', e.g. '@nlfree.me'
+		if (!domainList.includes('@' + emailUtils.getDomain(email))) {
 			throw new BizError(t('notExistDomain'));
 		}
 
@@ -52,7 +51,17 @@ const accountService = {
 		let accountRow = await this.selectByEmailIncludeDel(c, email);
 
 		if (accountRow && accountRow.isDel === isDel.DELETE) {
-			throw new BizError(t('isDelAccount'));
+			// 软删除的邮箱允许重新创建：恢复记录并转移到当前用户
+			await orm(c).update(account)
+				.set({ isDel: isDel.NORMAL, userId: userId, name: emailUtils.getName(email) })
+				.where(eq(account.email, email))
+				.run();
+			// 同步恢复该邮箱下的邮件归属
+			await c.env.db.prepare(`UPDATE email SET user_id = ?, is_del = 0 WHERE account_id = ?`)
+				.bind(userId, accountRow.accountId).run();
+			const restored = await this.selectByEmailIncludeDel(c, email);
+			restored.addVerifyOpen = false;
+			return restored;
 		}
 
 		if (accountRow) {
@@ -60,10 +69,6 @@ const accountService = {
 		}
 
 		const userRow = await userService.selectById(c, userId);
-
-		if (userRow.email !== c.env.admin && !userRow.addEmailEnabled) {
-			throw new BizError(t('addEmailDisabledForUser'), 403);
-		}
 
 		if (emailKeywordBlacklist.length > 0 && userRow.email !== c.env.admin) {
 			const emailName = emailUtils.getName(email).toLowerCase();
@@ -108,9 +113,7 @@ const accountService = {
 		}
 
 
-		const sort = await this.nextSort(c, userId);
-		accountRow = await orm(c).insert(account).values({ email: email, userId: userId, name: emailUtils.getName(email), sort }).returning().get();
-		await accountStorageService.keepNewAccountVisible(c, userId, accountRow, userId);
+		accountRow = await orm(c).insert(account).values({ email: email, userId: userId, name: emailUtils.getName(email) }).returning().get();
 
 		if (addEmailVerify === settingConst.addEmailVerify.COUNT && !addVerifyOpen) {
 			const row = await verifyRecordService.increaseAddCount(c);
@@ -121,122 +124,45 @@ const accountService = {
 		return accountRow;
 	},
 
-	async generatePrefix(c, params, userId) {
-		const {
-			minEmailPrefix,
-			randomPrefixLength,
-			emailPrefixFilter,
-			emailKeywordBlacklist
-		} = await settingService.query(c);
-
-		const suffixInput = (params?.suffix || '').trim();
-		const suffix = suffixInput.startsWith('@') ? suffixInput : `@${suffixInput}`;
-		const mode = prefixUtils.normalizeMode(params?.mode);
-		const userRow = await userService.selectById(c, userId);
-		const isAdmin = userRow.email === c.env.admin;
-		const prefixSize = Math.max(minEmailPrefix || 1, randomPrefixLength || 8);
-		const maxAttempts = mode === prefixUtils.prefixMode.WORD ? 160 : 80;
-
-		if (!isAdmin && !userRow.addEmailEnabled) {
-			throw new BizError(t('addEmailDisabledForUser'), 403);
-		}
-
-		if (!suffixInput) {
-			throw new BizError(t('notExistDomain'));
-		}
-
-		if (!c.env.domain.includes(emailUtils.getDomain(`demo${suffix}`))) {
-			throw new BizError(t('notExistDomain'));
-		}
-
-		for (let attempt = 0; attempt < maxAttempts; attempt++) {
-			const prefix = mode === prefixUtils.prefixMode.WORD
-				? prefixUtils.randomWord(minEmailPrefix, attempt)
-				: prefixUtils.randomString(prefixSize);
-
-			if (emailPrefixFilter.some(content => prefix.includes(content))) {
-				continue;
-			}
-
-			if (!isAdmin && emailKeywordBlacklist.some(keyword => prefix.includes(keyword.toLowerCase()))) {
-				continue;
-			}
-
-			const exists = await this.selectByEmailIncludeDel(c, `${prefix}${suffix}`);
-			if (!exists) {
-				return { prefix, mode };
-			}
-		}
-
-		throw new BizError(t('prefixGenerateFailed'));
-	},
-
 	selectByEmailIncludeDel(c, email) {
 		return orm(c).select().from(account).where(sql`${account.email} COLLATE NOCASE = ${email}`).get();
 	},
 
-	async list(c, params, userId) {
+	list(c, params, userId) {
 
-		let { accountId, size, lastSort, num, keyword } = params;
+		let { accountId, size, lastSort } = params;
 
 		accountId = Number(accountId);
 		size = Number(size);
 		lastSort = Number(lastSort);
-		num = Number(num);
-		keyword = String(keyword || '').trim();
-		const pageMode = !Number.isNaN(num) && num > 0;
 
-		if (size > 30) {
-			size = 30;
+		if (size > 100) {
+			size = 100;
 		}
 
-		if (!pageMode && !accountId) {
+		if (!accountId) {
 			accountId = 0;
+		}
+
+		if(Number.isNaN(lastSort)) {
 			lastSort = 9999999999;
-		} else if(Number.isNaN(lastSort)) {
-			lastSort = 9999999999;
 		}
 
-		const baseConditions = [
-			eq(account.userId, userId),
-			eq(account.isDel, isDel.NORMAL),
-		];
-
-		if (keyword) {
-			baseConditions.push(
-				or(
-					sql`${account.email} COLLATE NOCASE LIKE ${`%${keyword}%`}`,
-					sql`${account.name} COLLATE NOCASE LIKE ${`%${keyword}%`}`,
+		return orm(c).select().from(account).where(
+			and(
+				eq(account.userId, userId),
+				eq(account.isDel, isDel.NORMAL),
+					or(
+						lt(account.sort, lastSort),
+						and(
+							eq(account.sort, lastSort),
+							gt(account.accountId, accountId)
+						)
+					))
 				)
-			);
-		}
-
-		const listConditions = [...baseConditions];
-
-		if (!pageMode) {
-			listConditions.push(
-				or(
-					lt(account.sort, lastSort),
-					and(
-						eq(account.sort, lastSort),
-						lt(account.accountId, accountId)
-					)
-				)
-			);
-		}
-
-		const query = orm(c).select().from(account).where(and(...listConditions))
-			.orderBy(desc(account.sort), desc(account.accountId));
-
-		if (!pageMode) {
-			return query.limit(size).all();
-		}
-
-		const listQuery = query.limit(size).offset((num - 1) * size).all();
-		const totalQuery = orm(c).select({ total: count() }).from(account).where(and(...baseConditions)).get();
-		const [list, totalRow] = await Promise.all([listQuery, totalQuery]);
-
-		return { list, total: totalRow.total };
+			.orderBy(desc(account.sort), asc(account.accountId))
+			.limit(size)
+			.all();
 	},
 
 	async delete(c, params, userId) {
@@ -245,10 +171,6 @@ const accountService = {
 
 		const user = await userService.selectById(c, userId);
 		const accountRow = await this.selectById(c, accountId);
-
-		if (!accountRow) {
-			throw new BizError(t('accountNotFound'));
-		}
 
 		if (accountRow.email === user.email) {
 			throw new BizError(t('delMyAccount'));
@@ -264,106 +186,11 @@ const accountService = {
 			.run();
 	},
 
-	async recoveryList(c, params, userId) {
-		let { keyword, size, num } = params;
-		keyword = String(keyword || '').trim();
-		size = Number(size) || 50;
-		num = Number(num) || 1;
-
-		if (size > 100) {
-			size = 100;
-		}
-
-		const conditions = [
-			eq(account.userId, userId),
-			eq(account.isDel, isDel.DELETE),
-		];
-
-		if (keyword) {
-			conditions.push(sql`${account.email} COLLATE NOCASE LIKE ${`%${keyword}%`}`);
-		}
-
-		const query = orm(c)
-			.select()
-			.from(account)
-			.where(and(...conditions))
-			.orderBy(desc(account.accountId));
-
-		const listQuery = query.limit(size).offset((num - 1) * size).all();
-		const totalQuery = orm(c).select({ total: count() }).from(account).where(and(...conditions)).get();
-		const [list, totalRow] = await Promise.all([listQuery, totalQuery]);
-
-		return { list, total: totalRow.total };
-	},
-
-	async restore(c, params, userId) {
-		const accountId = Number(params.accountId);
-
-		if (!Number.isInteger(accountId) || accountId <= 0) {
-			throw new BizError(t('accountNotFound'));
-		}
-
-		const accountRow = await this.selectByIdIncludeDel(c, accountId);
-
-		if (!accountRow || accountRow.userId !== userId) {
-			throw new BizError(t('accountNotFound'));
-		}
-
-		if (accountRow.isDel === isDel.NORMAL) {
-			return accountRow;
-		}
-
-		const userRow = await userService.selectById(c, userId);
-		const roleRow = await roleService.selectById(c, userRow.type);
-
-		if (userRow.email !== c.env.admin) {
-			if (roleRow.accountCount > 0) {
-				const userAccountCount = await accountService.countUserAccount(c, userId);
-				if (userAccountCount >= roleRow.accountCount) throw new BizError(t('accountLimit'), 403);
-			}
-
-			if (!roleService.hasAvailDomainPerm(roleRow.availDomain, accountRow.email)) {
-				throw new BizError(t('noDomainPermAdd'), 403);
-			}
-		}
-
-		const sort = await this.nextSort(c, userId);
-		const restoredAccount = await orm(c)
-			.update(account)
-			.set({ isDel: isDel.NORMAL, sort })
-			.where(and(
-				eq(account.accountId, accountId),
-				eq(account.userId, userId),
-			))
-			.returning()
-			.get();
-
-		await accountStorageService.keepNewAccountVisible(c, userId, restoredAccount, userId);
-		return restoredAccount;
-	},
-
 	selectById(c, accountId) {
 		return orm(c).select().from(account).where(
 			and(eq(account.accountId, accountId),
 				eq(account.isDel, isDel.NORMAL)))
 			.get();
-	},
-
-	selectByIdIncludeDel(c, accountId) {
-		return orm(c).select().from(account).where(eq(account.accountId, accountId)).get();
-	},
-
-	async nextSort(c, userId) {
-		const row = await orm(c)
-			.select({ maxSort: sql`COALESCE(MAX(${account.sort}), 0)` })
-			.from(account)
-			.where(and(
-				eq(account.userId, userId),
-				eq(account.isDel, isDel.NORMAL),
-			))
-			.get();
-
-		return Number(row?.maxSort || 0) + 1;
 	},
 
 	async insert(c, params) {
@@ -444,23 +271,6 @@ const accountService = {
 		await orm(c).delete(account).where(eq(account.accountId, accountId)).run();
 	},
 
-	async physicsDeleteRecovered(c, params, userId) {
-		const accountId = Number(params.accountId);
-
-		if (!Number.isInteger(accountId) || accountId <= 0) {
-			throw new BizError(t('accountNotFound'));
-		}
-
-		const accountRow = await this.selectByIdIncludeDel(c, accountId);
-
-		if (!accountRow || accountRow.userId !== userId || accountRow.isDel !== isDel.DELETE) {
-			throw new BizError(t('accountNotFound'));
-		}
-
-		await accountStorageService.removeOverridesByAccountId(c, userId, accountId);
-		await this.physicsDelete(c, { accountId });
-	},
-
 	async setAllReceive(c, params, userId) {
 		let a = null
 		const { accountId } = params;
@@ -472,9 +282,15 @@ const accountService = {
 		await orm(c).update(account).set({ allReceive: accountRow.allReceive ? 0 : 1 }).where(eq(account.accountId, accountId)).run();
 	},
 
+	async cancelTop(c, params, userId) {
+		const { accountId } = params;
+		await orm(c).update(account).set({ sort: 0 })
+			.where(and(eq(account.accountId, accountId), eq(account.userId, userId)))
+			.run();
+	},
+
 	async setAsTop(c, params, userId) {
 		const { accountId } = params;
-		console.log(accountId);
 		const userRow = await userService.selectById(c, userId);
 		const mainAccountRow = await accountService.selectByEmailIncludeDel(c, userRow.email);
 		let mainSort = mainAccountRow.sort === 0 ? 2 : mainAccountRow.sort + 1;

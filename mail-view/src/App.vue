@@ -13,4 +13,11 @@ import('@/icons/index.js')
 const { locale } = useI18n()
 locale.value = settingStore.lang
 watch(() => settingStore.lang, () => locale.value = settingStore.lang)
+
+// Apply color theme to <html> data attribute so CSS variables cascade
+function applyTheme(theme) {
+  document.documentElement.dataset.colorTheme = theme || 'indigo'
+}
+applyTheme(settingStore.settings?.colorTheme)
+watch(() => settingStore.settings?.colorTheme, applyTheme)
 </script>

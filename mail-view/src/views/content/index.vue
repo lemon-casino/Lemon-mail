@@ -1,14 +1,14 @@
 <template>
-  <div v-if="email" class="box" v-loading="loading">
+  <div class="box">
     <div class="header-actions">
-      <Icon class="icon" icon="material-symbols-light:arrow-back-ios-new" width="20" height="20" @click="handleBack"/>
-      <Icon v-perm="'email:delete'" class="icon" icon="uiw:delete" width="16" height="16" @click="handleDelete"/>
+      <Icon class="icon" icon="mingcute:left-line" width="18" height="18" @click="handleBack"/>
+      <Icon v-perm="'email:delete'" class="icon" icon="mingcute:delete-2-line" width="18" height="18" @click="handleDelete"/>
       <span class="star" v-if="emailStore.contentData.showStar">
         <Icon class="icon" @click="changeStar" v-if="email.isStar" icon="fluent-color:star-16" width="20" height="20"/>
-        <Icon class="icon" @click="changeStar" v-else icon="solar:star-line-duotone" width="18" height="18"/>
+        <Icon class="icon" @click="changeStar" v-else icon="mingcute:star-line" width="18" height="18"/>
       </span>
-      <Icon class="icon" v-if="emailStore.contentData.showReply" v-perm="'email:send'"  @click="openReply" icon="la:reply" width="21" height="21" />
-      <Icon class="icon" v-if="emailStore.contentData.showReply" v-perm="'email:send'"  @click="openForward" icon="iconoir:arrow-up-right" width="20" height="20" />
+      <Icon class="icon" v-if="emailStore.contentData.showReply" v-perm="'email:send'"  @click="openReply" icon="mingcute:back-2-line" width="18" height="18" />
+      <Icon class="icon" v-if="emailStore.contentData.showReply" v-perm="'email:send'"  @click="openForward" icon="mingcute:share-forward-line" width="18" height="18" />
     </div>
     <div></div>
     <el-scrollbar class="scrollbar">
@@ -29,13 +29,18 @@
               <div class="date">
                 <div>{{ formatDetailDate(email.createTime) }}</div>
               </div>
+              <div class="code-row" v-if="email.code" @click="copyEmailCode(email.code)">
+                <Icon icon="mingcute:copy-2-line" width="14" height="14"/>
+                <span>{{ email.code }}</span>
+              </div>
             </div>
             <el-alert v-if="email.status === 3" :closable="false" :title="toMessage(email.message)" class="email-msg" type="error" show-icon />
             <el-alert v-if="email.status === 4" :closable="false" :title="$t('complained')" class="email-msg" type="warning" show-icon />
             <el-alert v-if="email.status === 5" :closable="false" :title="$t('delayed')" class="email-msg" type="warning" show-icon />
           </div>
           <el-scrollbar class="htm-scrollbar" :class="email.attList.length === 0 ? 'bottom-distance' : ''">
-            <ShadowHtml class="shadow-html" :html="formatImage(email.content)" v-if="email.content" />
+            <el-skeleton v-if="contentLoading" class="content-skeleton" :rows="6" animated />
+            <ShadowHtml class="shadow-html" :html="formatImage(email.content)" v-else-if="email.content" />
             <pre v-else class="email-text" >{{email.text}}</pre>
           </el-scrollbar>
           <div class="att" v-if="email.attList.length > 0">
@@ -54,9 +59,9 @@
                 </div>
                 <div class="att-size">{{ formatBytes(att.size) }}</div>
                 <div class="opt-icon att-icon">
-                  <Icon v-if="isImage(att.filename)" icon="hugeicons:view" width="22" height="22" @click="showImage(att.key)"/>
+                  <Icon v-if="isImage(att.filename)" icon="mingcute:eye-2-line" width="20" height="20" @click="showImage(att.key)"/>
                   <a :href="cvtR2Url(att.key)" download>
-                    <Icon icon="system-uicons:push-down" width="22" height="22"/>
+                    <Icon icon="mingcute:download-2-line" width="20" height="20"/>
                   </a>
                 </div>
               </div>
@@ -76,9 +81,9 @@
 <script setup>
 import ShadowHtml from '@/components/shadow-html/index.vue'
 import {reactive, ref, watch, onMounted, onUnmounted} from "vue";
-import {useRoute, useRouter} from 'vue-router'
+import {useRouter} from 'vue-router'
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {emailDelete, emailDetail, emailRead} from "@/request/email.js";
+import {emailDelete, emailRead, ensureEmailContent} from "@/request/email.js";
 import {Icon} from "@iconify/vue";
 import {useEmailStore} from "@/store/email.js";
 import {useAccountStore} from "@/store/account.js";
@@ -88,7 +93,7 @@ import {getExtName, formatBytes} from "@/utils/file-utils.js";
 import {cvtR2Url,toOssDomain} from "@/utils/convert.js";
 import {getIconByName} from "@/utils/icon-utils.js";
 import {useSettingStore} from "@/store/setting.js";
-import {allEmailDelete, allEmailDetail} from "@/request/all-email.js";
+import {allEmailDelete} from "@/request/all-email.js";
 import {useUiStore} from "@/store/ui.js";
 import {useI18n} from "vue-i18n";
 import {EmailUnreadEnum} from "@/enums/email-enum.js";
@@ -98,136 +103,53 @@ const settingStore = useSettingStore();
 const accountStore = useAccountStore();
 const emailStore = useEmailStore();
 const router = useRouter()
-const route = useRoute()
-const email = ref(null)
-const loading = ref(false)
+const email = emailStore.contentData.email
 const showPreview = ref(false)
 const srcList = reactive([])
+const contentLoading = ref(false)
 
 const { t } = useI18n()
-
 watch(() => accountStore.currentAccountId, () => {
   handleBack()
 })
 
-watch(() => route.query.emailId, () => {
-  loadEmail()
-})
-
-watch(() => route.query.storageScope, () => {
-  applyRouteOptions()
-})
-
 onMounted(() => {
-  loadEmail()
+  if (emailStore.contentData.showUnread && email.unread === EmailUnreadEnum.UNREAD) {
+    email.unread = EmailUnreadEnum.READ;
+    emailRead([email.emailId]);
+  }
+
+  // 列表只带摘要，进入详情时懒加载完整正文
+  if (!email.contentFull) {
+    contentLoading.value = !email.content && !email.text
+    ensureEmailContent(email).finally(() => {
+      contentLoading.value = false
+    })
+  }
 })
 
 onUnmounted(() => {
   emailStore.contentData.showUnread = false;
 })
 
-async function loadEmail() {
-  const emailId = getRouteEmailId();
-
-  if (!emailId) {
-    email.value = null;
-    router.replace(getBackRoute());
-    return;
-  }
-
-  applyRouteOptions();
-
-  const cachedEmail = emailStore.contentData.email;
-  if (cachedEmail && Number(cachedEmail.emailId) === emailId) {
-    setEmail(cachedEmail);
-    markUnread();
-    return;
-  }
-
-  loading.value = true;
-  try {
-    const detail = route.query.storageScope === 'all'
-        ? await allEmailDetail(emailId)
-        : await emailDetail(emailId);
-
-    if (getRouteEmailId() !== emailId) {
-      return;
-    }
-
-    setEmail(detail);
-    markUnread();
-  } catch (e) {
-    console.error(e);
-    if (getRouteEmailId() === emailId) {
-      email.value = null;
-      router.replace(getBackRoute());
-    }
-  } finally {
-    if (getRouteEmailId() === emailId) {
-      loading.value = false;
-    }
-  }
-}
-
-function getRouteEmailId() {
-  const emailId = Number(route.query.emailId);
-  return Number.isFinite(emailId) ? emailId : 0;
-}
-
-function setEmail(emailRow) {
-  if (!emailRow) {
-    email.value = null;
-    return;
-  }
-
-  const normalizedEmail = {
-    ...emailRow,
-    recipient: emailRow.recipient || '[]',
-    attList: Array.isArray(emailRow.attList) ? emailRow.attList : []
-  };
-  email.value = normalizedEmail;
-  emailStore.contentData.email = normalizedEmail;
-}
-
-function applyRouteOptions() {
-  const storageScope = route.query.storageScope;
-  emailStore.contentData.delType = storageScope === 'all' ? 'physics' : 'logic';
-  emailStore.contentData.showStar = storageScope !== 'all';
-  emailStore.contentData.showReply = storageScope !== 'all';
-  emailStore.contentData.showUnread = storageScope === 'inbox';
-}
-
-function markUnread() {
-  const currentEmail = email.value;
-  if (emailStore.contentData.showUnread && currentEmail?.unread === EmailUnreadEnum.UNREAD) {
-    currentEmail.unread = EmailUnreadEnum.READ;
-    emailRead([currentEmail.emailId]).catch(console.error);
-  }
-}
-
-function getBackRoute() {
-  if (route.query.storageScope === 'sent') return '/sent';
-  if (route.query.storageScope === 'star') return '/starred';
-  if (route.query.storageScope === 'all') return '/all-mail';
-  return '/inbox';
-}
-
 function openReply() {
-  if (!email.value) return;
-  uiStore.writerRef.openReply(email.value)
+  uiStore.writerRef.openReply(email)
 }
 
 function openForward() {
-  if (!email.value) return;
-  uiStore.writerRef.openForward(email.value)
+  uiStore.writerRef.openForward(email)
 }
 
 function toMessage(message) {
-  if (!message) return '';
+  return  message ? JSON.parse(message).message : '';
+}
+
+async function copyEmailCode(code) {
   try {
-    return JSON.parse(message).message || message;
-  } catch {
-    return message;
+    await navigator.clipboard.writeText(code);
+    ElMessage({ message: t('copySuccessMsg'), type: 'success', plain: true });
+  } catch (err) {
+    ElMessage({ message: t('copyFailMsg'), type: 'error', plain: true });
   }
 }
 
@@ -250,82 +172,68 @@ function isImage(filename) {
 }
 
 function formateReceive(recipient) {
-  try {
-    const list = JSON.parse(recipient || '[]');
-    return Array.isArray(list) ? list.map(item => item.address).join(', ') : '';
-  } catch {
-    return '';
-  }
+  recipient = JSON.parse(recipient)
+  return recipient.map(item => item.address).join(', ')
 }
 
 function changeStar() {
-  const currentEmail = email.value;
-  if (!currentEmail) return;
-
-  if (currentEmail.isStar) {
-    currentEmail.isStar = 0;
-    starCancel(currentEmail.emailId).then(() => {
-      currentEmail.isStar = 0;
-      emailStore.cancelStarEmailId = currentEmail.emailId
+  if (email.isStar) {
+    email.isStar = 0;
+    starCancel(email.emailId).then(() => {
+      email.isStar = 0;
+      emailStore.cancelStarEmailId = email.emailId
       setTimeout(() => emailStore.cancelStarEmailId = 0)
-      emailStore.starScroll?.deleteEmail([currentEmail.emailId])
+      emailStore.starScroll?.deleteEmail([email.emailId])
     }).catch((e) => {
       console.error(e)
-      currentEmail.isStar = 1;
+      email.isStar = 1;
     })
   } else {
-    currentEmail.isStar = 1;
-    starAdd(currentEmail.emailId).then(() => {
-      currentEmail.isStar = 1;
-      emailStore.addStarEmailId = currentEmail.emailId
+    email.isStar = 1;
+    starAdd(email.emailId).then(() => {
+      email.isStar = 1;
+      emailStore.addStarEmailId = email.emailId
       setTimeout(() => emailStore.addStarEmailId = 0)
-      emailStore.starScroll?.addItem(currentEmail)
+      emailStore.starScroll?.addItem(email)
     }).catch((e) => {
       console.error(e)
-      currentEmail.isStar = 0;
+      email.isStar = 0;
     })
   }
 }
 
 const handleBack = () => {
-  if (window.history.state?.back) {
-    router.back()
-  } else {
-    router.push(getBackRoute())
-  }
+  router.back()
 }
 
 const handleDelete = () => {
-  const currentEmail = email.value;
-  if (!currentEmail) return;
-
   ElMessageBox.confirm(t('delEmailConfirm'), {
     confirmButtonText: t('confirm'),
     cancelButtonText: t('cancel'),
     type: 'warning'
   }).then(() => {
     if (emailStore.contentData.delType === 'logic') {
-      emailDelete(currentEmail.emailId).then(() => {
+      emailDelete(email.emailId).then(() => {
         ElMessage({
           message: t('delSuccessMsg'),
           type: 'success',
           plain: true,
         })
-        emailStore.deleteIds = [currentEmail.emailId]
+        emailStore.deleteIds = [email.emailId]
       })
     } else  {
 
-      allEmailDelete(currentEmail.emailId).then(() => {
+      allEmailDelete(email.emailId).then(() => {
         ElMessage({
           message: t('delSuccessMsg'),
           type: 'success',
           plain: true,
         })
-        emailStore.deleteIds = [currentEmail.emailId]
+        emailStore.deleteIds = [email.emailId]
       })
     }
 
-    handleBack()
+    router.back()
   })
 }
 </script>
@@ -533,6 +441,29 @@ const handleDelete = () => {
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0;
+}
+
+.content-skeleton {
+  padding: 4px 2px;
+}
+
+.code-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+  border: 1px solid var(--el-color-primary-light-7);
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--el-color-primary-light-8);
+  }
 }
 
 .bottom-distance {

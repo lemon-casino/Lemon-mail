@@ -19,6 +19,9 @@ id = "<YOUR_KV_NAMESPACE_ID>"
 binding = "r2"
 bucket_name = "xi-mail"
 
+# ── Static assets (一体化部署模式) ──
+# 如果前后端分离部署（mail-view 单独部署到 Pages / Vercel 等），
+# 注释掉下方整个 [assets] 块即可，Worker 将作为纯 API 运行。
 [assets]
 binding = "assets"
 directory = "./dist"

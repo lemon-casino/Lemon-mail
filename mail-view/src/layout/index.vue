@@ -1,19 +1,23 @@
 <template>
-  <div class="layout">
+  <div class="layout" :class="'lm-' + layoutMode">
     <aside
+      v-if="hasAside"
       class="aside"
       :class="uiStore.asideShow ? 'aside-show' : 'aside-hide'"
     >
       <Aside />
     </aside>
     <div
+      v-if="hasAside"
       :class="(uiStore.asideShow && isMobile) ? 'overlay-show' : 'overlay-hide'"
       @click="uiStore.asideShow = false"
     />
+    <IslandNav v-if="layoutMode === 'island'" />
     <div class="main-area">
       <header class="top-bar">
         <Header />
       </header>
+      <HNav v-if="layoutMode === 'top'" />
       <Main />
     </div>
   </div>
@@ -22,19 +26,30 @@
 
 <script setup>
 import Aside from '@/layout/aside/index.vue'
+import HNav from '@/layout/hnav/index.vue'
+import IslandNav from '@/layout/island/index.vue'
 import Header from '@/layout/header/index.vue'
 import Main from '@/layout/main/index.vue'
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useUiStore } from "@/store/ui.js";
+import { useSettingStore } from "@/store/setting.js";
 import writer from '@/layout/write/index.vue'
 
 const uiStore = useUiStore();
+const settingStore = useSettingStore();
 const writerRef = ref({})
 const isMobile = ref(window.innerWidth < 1025)
 
+const layoutMode = computed(() => settingStore.settings?.layoutMode || 'default')
+const hasAside = computed(() => ['default', 'compact'].includes(layoutMode.value))
+
 const handleResize = () => {
   isMobile.value = window.innerWidth < 1025
-  uiStore.asideShow = window.innerWidth > 1024;
+  if (hasAside.value) {
+    uiStore.asideShow = window.innerWidth > 1024;
+  } else {
+    uiStore.asideShow = false;
+  }
 }
 
 onMounted(() => {
@@ -49,6 +64,13 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
+/* ══════════════════════════════════════════════════════════════════════════════
+   Main Layout: Eastern Aesthetic / 东方美学布局
+   ──────────────────────────────────────────────────────────────────────────────
+   - Clean separation between sidebar and content
+   - Refined border treatments
+   - Smooth, elegant transitions
+   ══════════════════════════════════════════════════════════════════════════════ */
 .layout {
   height: 100%;
   width: 100%;
@@ -57,13 +79,14 @@ onBeforeUnmount(() => {
   left: 0;
   display: flex;
   overflow: hidden;
+  background: var(--el-bg-color);
 }
 
 .aside {
   flex-shrink: 0;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
   z-index: 101;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid rgba(61, 139, 132, 0.08);
 }
 
 .aside-hide {
@@ -95,27 +118,64 @@ onBeforeUnmount(() => {
   flex-direction: column;
   background: var(--el-bg-color);
   overflow: hidden;
+  /* Subtle texture for main content area */
+  background-image: var(--xi-gradient-subtle);
 }
 
 .top-bar {
-  height: 52px;
+  height: 56px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--el-border-color-lighter);
   padding: 0;
   background: var(--el-bg-color);
+  backdrop-filter: blur(8px);
 }
 
 .overlay-show {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(12, 15, 18, 0.55);
   z-index: 99;
-  transition: opacity 0.25s ease;
-  backdrop-filter: blur(2px);
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(4px);
 }
 
 .overlay-hide {
   pointer-events: none;
   opacity: 0;
+}
+
+.lm-island {
+  padding: 0;
+  background: var(--el-fill-color-extra-light);
+
+  .main-area {
+    margin: 8px 8px 8px 0;
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 12px;
+    background: var(--el-bg-color);
+    background-image: none;
+    box-shadow: 0 2px 8px rgba(18,24,32,.05);
+  }
+
+  .top-bar {
+    height: 56px;
+    border-bottom-color: var(--el-border-color-extra-light);
+    background: var(--el-bg-color);
+  }
+}
+
+@media (max-width: 720px) {
+  .lm-island {
+    .main-area {
+      margin: 0;
+      padding-bottom: calc(58px + env(safe-area-inset-bottom));
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .top-bar { height: 54px; }
+  }
 }
 </style>

@@ -4,7 +4,7 @@
     <account :class="accountShow && hasPerm('account:query') ? 'show' : 'hide'" />
     <router-view class="main-view" v-slot="{ Component, route }">
       <keep-alive :include="['email','all-email','send','sys-setting','star','user','role','analysis','reg-key','draft']">
-        <component :is="Component" :key="route.name"/>
+        <component :is="Component" :key="route.meta.name || route.name"/>
       </keep-alive>
     </router-view>
   </div>
@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
 })
 
 const handleResize = () => {
-  if (['content','email','send','draft'].includes(route.meta.name)) {
+  if (['content','email','send'].includes(route.meta.name)) {
     if (innerWidth !== window.innerWidth) {
       innerWidth = window.innerWidth;
       uiStore.accountShow = window.innerWidth >= 767;

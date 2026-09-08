@@ -4,7 +4,6 @@ export const useAccountStore = defineStore('account', {
     state: () => ({
         currentAccountId: 0,
         currentAccount: {},
-        changeUserAccountName: '',
-        accounts: []
+        changeUserAccountName: ''
     })
 })

@@ -38,73 +38,13 @@ const dbInit = {
 		await this.v3_7DB(c);
 		await this.v3_8DB(c);
 		await this.v3_9DB(c);
-		await this.v3_10DB(c);
+		await this.v4_0DB(c);
+		await this.v4_1DB(c);
+		await this.v4_2DB(c);
+		await this.v4_3DB(c);
+		await this.v4_4DB(c);
 		await settingService.refresh(c);
 		return c.text('success');
-	},
-
-	async v3_10DB(c) {
-		try {
-			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN public_api_admin_domain INTEGER NOT NULL DEFAULT 1;`).run();
-		} catch (e) {}
-	},
-
-	async v3_9DB(c) {
-		try {
-			await c.env.db.prepare(`
-				CREATE TABLE IF NOT EXISTS account_collect_rule (
-					rule_id INTEGER PRIMARY KEY AUTOINCREMENT,
-					user_id INTEGER NOT NULL,
-					scope TEXT NOT NULL,
-					rule_type TEXT NOT NULL DEFAULT 'domain',
-					rule_value TEXT NOT NULL,
-					status INTEGER NOT NULL DEFAULT 1,
-					create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-					update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-					updated_by INTEGER NOT NULL DEFAULT 0
-				)
-			`).run();
-		} catch (e) {}
-
-		try {
-			await c.env.db.prepare(`
-				CREATE TABLE IF NOT EXISTS account_collect_override (
-					override_id INTEGER PRIMARY KEY AUTOINCREMENT,
-					user_id INTEGER NOT NULL,
-					account_id INTEGER NOT NULL,
-					scope TEXT NOT NULL,
-					display_state TEXT NOT NULL,
-					source_type TEXT NOT NULL DEFAULT 'manual_collect',
-					create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-					update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-					updated_by INTEGER NOT NULL DEFAULT 0
-				)
-			`).run();
-		} catch (e) {}
-	},
-
-	async v3_8DB(c) {
-		try {
-			await c.env.db.prepare(`ALTER TABLE user ADD COLUMN add_email_enabled INTEGER NOT NULL DEFAULT 1;`).run();
-		} catch (e) {}
-	},
-
-	async v3_7DB(c) {
-		try {
-			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN site_icon TEXT NOT NULL DEFAULT '';`).run();
-		} catch (e) {}
-	},
-
-	async v3_6DB(c) {
-		try {
-			await c.env.db.prepare(`UPDATE setting SET title = 'Lemon-Mail' WHERE title = 'Xi-Mail';`).run();
-		} catch (e) {}
-		try {
-			await c.env.db.prepare(`UPDATE setting SET notice_title = 'Lemon-Mail' WHERE notice_title = 'Xi-Mail';`).run();
-		} catch (e) {}
-		try {
-			await c.env.db.prepare(`UPDATE setting SET notice_content = REPLACE(notice_content, 'Xi-Mail', 'Lemon-Mail') WHERE notice_content LIKE '%Xi-Mail%';`).run();
-		} catch (e) {}
 	},
 
 	async v3_0DB(c) {
@@ -203,6 +143,115 @@ const dbInit = {
 		} catch (e) {}
 		try {
 			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN reg_key_link TEXT NOT NULL DEFAULT '';`).run();
+		} catch (e) {}
+	},
+
+	async v3_6DB(c) {
+		try {
+			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN managed_domains TEXT NOT NULL DEFAULT '';`).run();
+		} catch (e) {}
+	},
+
+	async v3_7DB(c) {
+		try {
+			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN color_theme TEXT NOT NULL DEFAULT 'indigo';`).run();
+		} catch (e) {}
+		try {
+			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN login_template TEXT NOT NULL DEFAULT 'gradient';`).run();
+		} catch (e) {}
+	},
+
+	async v3_8DB(c) {
+		try {
+			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN layout_mode TEXT NOT NULL DEFAULT 'default';`).run();
+		} catch (e) {}
+	},
+
+	async v3_9DB(c) {
+		try {
+			await c.env.db.prepare(`ALTER TABLE user ADD COLUMN lang TEXT NOT NULL DEFAULT '';`).run();
+		} catch (e) {}
+		try {
+			await c.env.db.prepare(`
+				CREATE TABLE IF NOT EXISTS sub_worker (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					name TEXT NOT NULL,
+					url TEXT NOT NULL,
+					api_token TEXT NOT NULL,
+					domains TEXT NOT NULL DEFAULT '[]',
+					status INTEGER NOT NULL DEFAULT 1,
+					create_time DATETIME DEFAULT CURRENT_TIMESTAMP
+				)
+			`).run();
+		} catch (e) {}
+	},
+
+	async v4_0DB(c) {
+		try {
+			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN reg_key_hint_en TEXT NOT NULL DEFAULT '';`).run();
+		} catch (e) {}
+	},
+
+	async v4_1DB(c) {
+		try {
+			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN sender_filter_mode INTEGER NOT NULL DEFAULT 0;`).run();
+		} catch (e) {}
+		try {
+			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN sender_domain_whitelist TEXT NOT NULL DEFAULT '';`).run();
+		} catch (e) {}
+	},
+
+	async v4_2DB(c) {
+		const ADD_COLUMN_SQL_LIST = [
+			`ALTER TABLE setting ADD COLUMN auto_clean_days INTEGER NOT NULL DEFAULT 0;`,
+			`ALTER TABLE setting ADD COLUMN auto_clean_exclude TEXT NOT NULL DEFAULT '';`,
+			`ALTER TABLE setting ADD COLUMN sync_delete INTEGER NOT NULL DEFAULT 1;`,
+			`ALTER TABLE setting ADD COLUMN ai_code INTEGER NOT NULL DEFAULT 0;`,
+			`ALTER TABLE setting ADD COLUMN ai_code_filter TEXT NOT NULL DEFAULT '';`,
+			`ALTER TABLE setting ADD COLUMN new_email_notify INTEGER NOT NULL DEFAULT 0;`,
+			`ALTER TABLE email ADD COLUMN code TEXT NOT NULL DEFAULT '';`
+		];
+
+		for (const sql of ADD_COLUMN_SQL_LIST) {
+			try { await c.env.db.prepare(sql).run(); } catch (e) {}
+		}
+
+		// 列表查询、时间清理、搜索与星标关联的索引
+		const CREATE_INDEX_SQL_LIST = [
+			`CREATE INDEX IF NOT EXISTS idx_email_list_user ON email(user_id, type, is_del, email_id);`,
+			`CREATE INDEX IF NOT EXISTS idx_email_list_account ON email(user_id, account_id, type, is_del, email_id);`,
+			`CREATE INDEX IF NOT EXISTS idx_email_create_time ON email(create_time);`,
+			`CREATE INDEX IF NOT EXISTS idx_email_name_nocase ON email(name COLLATE NOCASE);`,
+			`CREATE INDEX IF NOT EXISTS idx_email_subject_nocase ON email(subject COLLATE NOCASE);`,
+			`CREATE INDEX IF NOT EXISTS idx_email_to_email_nocase ON email(to_email COLLATE NOCASE);`,
+			`CREATE INDEX IF NOT EXISTS idx_email_send_email_nocase ON email(send_email COLLATE NOCASE);`,
+			`CREATE INDEX IF NOT EXISTS idx_star_user_email ON star(user_id, email_id);`,
+			`CREATE INDEX IF NOT EXISTS idx_star_email_user ON star(email_id, user_id);`,
+			`CREATE INDEX IF NOT EXISTS idx_att_email_id ON attachments(email_id);`,
+			`CREATE INDEX IF NOT EXISTS idx_att_user_id ON attachments(user_id);`
+		];
+
+		for (const sql of CREATE_INDEX_SQL_LIST) {
+			try { await c.env.db.prepare(sql).run(); } catch (e) {
+				console.warn(`跳过索引：${e.message}`);
+			}
+		}
+	},
+
+	async v4_3DB(c) {
+		// 一次性把 v4.2 的默认关闭改成默认开启，之后用户手动关闭不再被覆盖
+		try {
+			const done = await c.env.kv.get('v4_3_ai_code_default');
+			if (!done) {
+				await c.env.db.prepare(`UPDATE setting SET ai_code = 0 WHERE ai_code = 1`).run();
+				await c.env.kv.put('v4_3_ai_code_default', '1');
+			}
+		} catch (e) {}
+	},
+
+	async v4_4DB(c) {
+		try {
+			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN ai_model TEXT NOT NULL DEFAULT '@cf/meta/llama-3.1-8b-instruct-fast';`).run();
 		} catch (e) {}
 	},
 
@@ -335,7 +384,7 @@ const dbInit = {
 
 	async v1_6DB(c) {
 
-		const noticeContent = 'Lemon-Mail 临时邮箱服务 🎉\n' +
+		const noticeContent = 'Xi-Mail 临时邮箱服务 🎉\n' +
 			'<br>\n' +
 			'加入 Telegram 频道获取最新动态：<a href="https://t.me/pk_oa" target="_blank">@pk_oa</a>\n' +
 			'<br>\n' +
@@ -351,7 +400,7 @@ const dbInit = {
 				type INTEGER NOT NULL DEFAULT 0,
 				update_time DATETIME DEFAULT CURRENT_TIMESTAMP
       )`,
-			`ALTER TABLE setting ADD COLUMN notice_title TEXT NOT NULL DEFAULT 'Lemon-Mail';`,
+			`ALTER TABLE setting ADD COLUMN notice_title TEXT NOT NULL DEFAULT 'Xi-Mail';`,
 			`ALTER TABLE setting ADD COLUMN notice_content TEXT NOT NULL DEFAULT '';`,
 			`ALTER TABLE setting ADD COLUMN notice_type TEXT NOT NULL DEFAULT 'none';`,
 			`ALTER TABLE setting ADD COLUMN notice_duration INTEGER NOT NULL DEFAULT 0;`,
@@ -758,7 +807,7 @@ const dbInit = {
 			  INSERT INTO setting (
 				register, receive, add_email, many_email, title, auto_refresh, register_verify, add_email_verify
 			  )
-			  SELECT 0, 0, 0, 0, 'Lemon-Mail', 0, 1, 1
+			  SELECT 0, 0, 0, 0, 'Xi-Mail', 0, 1, 1
 			  WHERE NOT EXISTS (SELECT 1 FROM setting)
 			`).run();
 		} catch (e) {

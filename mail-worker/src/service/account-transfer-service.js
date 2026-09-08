@@ -2,10 +2,15 @@ import BizError from '../error/biz-error';
 import orm from '../entity/orm';
 import accountTransfer from '../entity/account-transfer';
 import account from '../entity/account';
-import { eq, and, or } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { t } from '../i18n/i18n';
 import userService from './user-service';
+
+async function isPrimaryAccount(c, userId, email) {
+    const user = await userService.selectByIdIncludeDel(c, userId);
+    return user?.email?.toLowerCase() === email?.toLowerCase();
+}
 
 const accountTransferService = {
 
@@ -23,6 +28,10 @@ const accountTransferService = {
 
         if (accountRow.isDel === 1) {
             throw new BizError(t('accountNotFound'));
+        }
+
+        if (await isPrimaryAccount(c, fromUserId, accountRow.email)) {
+            throw new BizError(t('cannotTransferPrimaryAccount'));
         }
 
         // Find target user by displayId
@@ -67,6 +76,10 @@ const accountTransferService = {
             throw new BizError(t('transferNotFound'));
         }
 
+        if (await isPrimaryAccount(c, transferRow.fromUserId, transferRow.accountEmail)) {
+            throw new BizError(t('cannotTransferPrimaryAccount'));
+        }
+
         // Update account ownership (emails follow naturally via account_id)
         await orm(c).update(account)
             .set({ userId })
@@ -89,10 +102,7 @@ const accountTransferService = {
         const transferRow = await orm(c).select().from(accountTransfer)
             .where(and(
                 eq(accountTransfer.transferId, transferId),
-                or(
-                    eq(accountTransfer.toUserId, userId),
-                    eq(accountTransfer.fromUserId, userId)
-                ),
+                eq(accountTransfer.toUserId, userId),
                 eq(accountTransfer.status, 0)
             )).get();
 
@@ -120,6 +130,17 @@ const accountTransferService = {
             .where(eq(accountTransfer.fromUserId, userId))
             .orderBy(sql`${accountTransfer.createTime} DESC`)
             .limit(20)
+            .all();
+    },
+
+    async receivedHistoryList(c, userId) {
+        return orm(c).select().from(accountTransfer)
+            .where(and(
+                eq(accountTransfer.toUserId, userId),
+                sql`${accountTransfer.status} != 0`
+            ))
+            .orderBy(sql`${accountTransfer.createTime} DESC`)
+            .limit(30)
             .all();
     },
 

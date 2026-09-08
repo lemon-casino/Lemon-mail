@@ -1,6 +1,6 @@
 <template>
-  <div class="login-page" v-loading="oauthLoading" element-loading-text="登录中...">
-    <!-- Background decoration -->
+  <div :class="['login-page', 'template-' + loginTemplate]" v-loading="oauthLoading" element-loading-text="登录中...">
+    <!-- Background decoration (gradient template only) -->
     <div class="bg-layer">
       <div class="bg-orb bg-orb-1"></div>
       <div class="bg-orb bg-orb-2"></div>
@@ -8,14 +8,160 @@
       <div class="bg-grid"></div>
     </div>
 
+    <!-- Ink template: editorial poster, intentionally separate from the form -->
+    <section v-if="loginTemplate === 'gradient'" class="ink-poster" aria-hidden="true">
+      <div class="ink-poster-top">
+        <span class="ink-index">01</span>
+        <span class="ink-rule"></span>
+        <span class="ink-caption">{{ $t('privateMailbox') }}</span>
+      </div>
+      <div class="ink-poster-copy">
+        <span class="ink-eyebrow">XI / MAIL</span>
+        <h2>{{ settingStore.settings.title }}</h2>
+        <p>{{ $t('mailInYourControl') }}</p>
+      </div>
+      <div class="ink-stamp">
+        <Icon icon="mingcute:mail-send-fill" width="22" height="22"/>
+      </div>
+    </section>
+
+    <!-- Minimal template: an editorial masthead instead of a decorative scene -->
+    <header v-if="loginTemplate === 'minimal'" class="minimal-masthead">
+      <div class="minimal-brand">
+        <Icon icon="mingcute:mail-send-line" width="19" height="19"/>
+        <span>{{ settingStore.settings.title }}</span>
+      </div>
+      <span class="minimal-edition">{{ $t('simpleAndFocused') }}</span>
+    </header>
+
+    <!-- Split template: left brand panel -->
+    <div v-if="loginTemplate === 'split'" class="split-left">
+      <div class="split-brand">
+        <div class="split-logo">
+          <Icon icon="mingcute:mail-send-fill" width="28" height="28" />
+        </div>
+        <h1 class="split-title">{{ settingStore.settings.title }}</h1>
+        <p class="split-desc">{{ $t('loginSubTitle') }}</p>
+        <div class="split-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Glassmorphism template: full-screen image background -->
+    <div v-if="loginTemplate === 'glassmorphism'" class="glass-bg">
+      <div class="glass-orb glass-orb-1"></div>
+      <div class="glass-orb glass-orb-2"></div>
+      <div class="glass-orb glass-orb-3"></div>
+      <div class="glass-noise"></div>
+      <div class="glass-float glass-float-mail">
+        <Icon icon="mingcute:mail-open-line" width="18" height="18"/>
+        <span>{{ $t('mailReady') }}</span>
+      </div>
+      <div class="glass-float glass-float-lock">
+        <Icon icon="mingcute:shield-check-line" width="18" height="18"/>
+        <span>{{ $t('privateMailbox') }}</span>
+      </div>
+    </div>
+
+    <!-- Aurora template: right side brand panel -->
+    <div v-if="loginTemplate === 'aurora'" class="aurora-panel">
+      <div class="aurora-waves">
+        <div class="aurora-wave aurora-wave-1"></div>
+        <div class="aurora-wave aurora-wave-2"></div>
+        <div class="aurora-wave aurora-wave-3"></div>
+      </div>
+      <div class="aurora-stars"></div>
+      <div class="aurora-brand">
+        <div class="aurora-logo">
+          <Icon icon="mingcute:mail-send-fill" width="32" height="32" />
+        </div>
+        <h1 class="aurora-title">{{ settingStore.settings.title }}</h1>
+        <p class="aurora-desc">{{ $t('loginSubTitle') }}</p>
+        <div class="aurora-features">
+          <div class="aurora-feature">
+            <Icon icon="mingcute:shield-check-fill" width="18" height="18" />
+            <span>{{ $t('featureSecure') }}</span>
+          </div>
+          <div class="aurora-feature">
+            <Icon icon="mingcute:flash-fill" width="18" height="18" />
+            <span>{{ $t('featureFast') }}</span>
+          </div>
+          <div class="aurora-feature">
+            <Icon icon="mingcute:planet-fill" width="18" height="18" />
+            <span>{{ $t('featureGlobal') }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Geometric template: decorative shapes -->
+    <div v-if="loginTemplate === 'geometric'" class="geo-shapes">
+      <div class="geo-shape geo-circle"></div>
+      <div class="geo-shape geo-square"></div>
+      <div class="geo-shape geo-triangle"></div>
+      <div class="geo-shape geo-donut"></div>
+      <div class="geo-grid"></div>
+      <div class="geo-copy">
+        <span>MAIL / 06</span>
+        <strong>{{ $t('mailWithoutLimits') }}</strong>
+      </div>
+    </div>
+
+    <!-- Envelope template: tactile mail piece and sliding registration letter -->
+    <section v-if="loginTemplate === 'envelope'" class="envelope-scene" aria-hidden="true">
+      <div class="envelope-return">
+        <Icon icon="mingcute:mail-send-line" width="17" height="17" />
+        <span>{{ settingStore.settings.title }}</span>
+      </div>
+      <div class="envelope-postmark">
+        <span>XI MAIL</span>
+        <b>{{ new Date().getFullYear() }}</b>
+      </div>
+      <div class="envelope-airmail"></div>
+      <p>{{ $t('envelopeNote') }}</p>
+    </section>
+
+    <!-- Terminal template: deliberately plain text workstation -->
+    <section v-if="loginTemplate === 'terminal'" class="terminal-aside" aria-hidden="true">
+      <pre>XI-MAIL SYSTEM
+----------------
+SMTP  READY
+IMAP  READY
+AUTH  WAITING
+
+{{ $t('terminalHint') }}</pre>
+      <span class="terminal-cursor">_</span>
+    </section>
+
+    <!-- Passport template: postal identity booklet -->
+    <section v-if="loginTemplate === 'passport'" class="passport-scene" aria-hidden="true">
+      <div class="passport-number">XM · {{ new Date().getFullYear() }} · 09</div>
+      <div class="passport-stamp">
+        <Icon icon="mingcute:mail-send-line" width="25" height="25" />
+        <span>XI MAIL</span>
+      </div>
+      <div class="passport-route">
+        <i></i><span>{{ $t('passportRoute') }}</span><i></i>
+      </div>
+    </section>
+
     <!-- Centered card -->
     <div class="card-wrapper">
-      <div class="auth-card" v-motion :initial="{ opacity: 0, y: 24, scale: 0.98 }" :enter="{ opacity: 1, y: 0, scale: 1, transition: { duration: 400 } }">
+      <div v-if="loginTemplate === 'glassmorphism'" class="glass-window-bar" aria-hidden="true">
+        <div class="glass-window-dots"><span></span><span></span><span></span></div>
+        <span>{{ settingStore.settings.title }}</span>
+        <Icon icon="mingcute:more-2-fill" width="15" height="15"/>
+      </div>
+      <div v-if="loginTemplate === 'terminal'" class="terminal-window-bar" aria-hidden="true">
+        <span>[ XI-MAIL / AUTH ]</span>
+        <span>tty-07</span>
+      </div>
+      <div class="auth-card" :class="{ 'is-register': show !== 'login' }" v-motion :initial="{ opacity: 0, y: 24, scale: 0.98 }" :enter="{ opacity: 1, y: 0, scale: 1, transition: { duration: 400 } }">
         <!-- Logo + Title -->
         <div class="card-header">
           <div class="logo-icon">
-            <img v-if="siteIconUrl" :src="siteIconUrl" :alt="settingStore.settings.title" class="site-logo-image" />
-            <Icon v-else icon="mingcute:mail-send-fill" width="22" height="22" />
+            <Icon icon="mingcute:mail-send-fill" width="22" height="22" />
           </div>
           <h1 class="app-name">{{ settingStore.settings.title }}</h1>
         </div>
@@ -28,6 +174,18 @@
           </div>
         </Transition>
 
+        <!-- Server selector (standalone mode with multiple servers) -->
+        <div v-if="serverStore.isStandalone && serverStore.servers.length > 1" class="server-selector">
+          <el-select v-model="activeServerSelect" size="default" @change="onServerChange">
+            <el-option
+              v-for="s in serverStore.servers"
+              :key="s.id"
+              :label="s.name"
+              :value="s.id"
+            />
+          </el-select>
+        </div>
+
         <!-- Tab switcher -->
         <div class="tab-bar" v-if="settingStore.settings.register === 0">
           <button :class="['tab', show === 'login' && 'active']" @click="show = 'login'">{{ $t('loginBtn') }}</button>
@@ -37,26 +195,26 @@
         <!-- Forms -->
         <Transition name="form" mode="out-in">
           <!-- LOGIN -->
-          <div v-if="show === 'login'" key="login" class="fields">
-            <div class="field">
+          <div v-if="show === 'login'" key="login" class="fields login-fields">
+            <div class="field field-email">
               <label>{{ $t('emailAccount') }}</label>
-              <div class="input-group" :class="{ 'has-suffix': settingStore.settings.loginDomain === 0 }">
+              <div class="input-group" :class="{ 'has-suffix': settingStore.settings.loginDomain === 0 && hasDomains }">
                 <div class="input-main">
                   <Icon class="input-icon" icon="mingcute:mail-line" width="16" height="16" />
                   <input v-model="form.email" type="text" autocomplete="off"
-                    :placeholder="settingStore.settings.loginDomain === 0 ? 'username' : $t('emailAccount')" />
+                    :placeholder="(settingStore.settings.loginDomain === 0 && hasDomains) ? 'username' : $t('emailAccount')" />
                 </div>
-                <div v-if="settingStore.settings.loginDomain === 0" class="input-suffix" @click.stop="openSelect">
+                <div v-if="settingStore.settings.loginDomain === 0 && hasDomains" class="input-suffix" @click.stop="openSelect">
                   <span>{{ suffix }}</span>
                   <Icon icon="mingcute:down-line" width="11" height="11" />
-                  <el-select v-if="show === 'login'" ref="mySelect" v-model="suffix" class="hidden-select">
+                  <el-select v-if="show === 'login'" ref="mySelect" v-model="suffix" class="hidden-select" :popper-class="suffixPopperClass">
                     <el-option v-for="d in domainList" :key="d" :label="d" :value="d" />
                   </el-select>
                 </div>
               </div>
             </div>
 
-            <div class="field">
+            <div class="field field-password">
               <label>{{ $t('password') }}</label>
               <div class="input-main standalone">
                 <Icon class="input-icon" icon="mingcute:lock-line" width="16" height="16" />
@@ -82,25 +240,26 @@
           </div>
 
           <!-- REGISTER -->
-          <div v-else key="register" class="fields">
-            <div class="field">
+          <div v-else key="register" class="fields register-fields">
+            <div class="field field-email">
               <label>{{ $t('emailAccount') }}</label>
-              <div class="input-group has-suffix">
+              <div class="input-group" :class="{ 'has-suffix': hasDomains }">
                 <div class="input-main">
                   <Icon class="input-icon" icon="mingcute:mail-line" width="16" height="16" />
-                  <input v-model="registerForm.email" type="text" autocomplete="off" placeholder="username" />
+                  <input v-model="registerForm.email" type="text" autocomplete="off"
+                    :placeholder="hasDomains ? 'username' : $t('emailAccount')" />
                 </div>
-                <div class="input-suffix" @click.stop="openSelect">
+                <div v-if="hasDomains" class="input-suffix" @click.stop="openSelect">
                   <span>{{ suffix }}</span>
                   <Icon icon="mingcute:down-line" width="11" height="11" />
-                  <el-select v-if="show !== 'login'" ref="mySelect" v-model="suffix" class="hidden-select">
+                  <el-select v-if="show !== 'login'" ref="mySelect" v-model="suffix" class="hidden-select" :popper-class="suffixPopperClass">
                     <el-option v-for="d in domainList" :key="d" :label="d" :value="d" />
                   </el-select>
                 </div>
               </div>
             </div>
 
-            <div class="field">
+            <div class="field field-password">
               <label>{{ $t('password') }}</label>
               <div class="input-main standalone">
                 <Icon class="input-icon" icon="mingcute:lock-line" width="16" height="16" />
@@ -111,7 +270,7 @@
               </div>
             </div>
 
-            <div class="field">
+            <div class="field field-confirm">
               <label>{{ $t('confirmPwd') }}</label>
               <div class="input-main standalone" :class="{ error: registerForm.confirmPassword && registerForm.password !== registerForm.confirmPassword }">
                 <Icon class="input-icon" icon="mingcute:lock-check-line" width="16" height="16" />
@@ -122,7 +281,7 @@
               </div>
             </div>
 
-            <div v-if="settingStore.settings.regKey === 0 || settingStore.settings.regKey === 2" class="field">
+            <div v-if="settingStore.settings.regKey === 0 || settingStore.settings.regKey === 2" class="field field-reg-key">
               <label>{{ settingStore.settings.regKey === 0 ? $t('regKey') : $t('regKeyOptional') }}</label>
               <div class="input-main standalone">
                 <Icon class="input-icon" icon="mingcute:key-2-line" width="16" height="16" />
@@ -130,7 +289,7 @@
                   :placeholder="settingStore.settings.regKey === 0 ? $t('regKey') : $t('regKeyOptional')" />
               </div>
               <div class="reg-key-tips">
-                <span v-if="settingStore.settings.regKeyHint" class="reg-key-hint">{{ settingStore.settings.regKeyHint }}</span>
+                <span v-if="currentRegKeyHint" class="reg-key-hint">{{ currentRegKeyHint }}</span>
                 <a v-if="settingStore.settings.regKeyLink" class="reg-key-link" :href="settingStore.settings.regKeyLink" target="_blank" rel="noopener noreferrer">
                   <Icon icon="mingcute:external-link-line" width="13" height="13" />
                   {{ $t('getRegKey') }}
@@ -163,6 +322,13 @@
         </Transition>
       </div>
 
+      <!-- Footer below card -->
+      <div class="page-footer" v-motion :initial="{ opacity: 0 }" :enter="{ opacity: 1, transition: { delay: 300 } }">
+        <a href="https://github.com/PastKing/xi-mail" target="_blank">
+          <Icon icon="mingcute:github-line" width="14" height="14" />
+          <span>{{ $t('openSource') }}</span>
+        </a>
+      </div>
     </div>
 
     <!-- OAuth bind dialog -->
@@ -170,15 +336,16 @@
       <div class="bind-body">
         <div class="field">
           <label>邮箱地址</label>
-          <div class="input-group has-suffix">
+          <div class="input-group" :class="{ 'has-suffix': hasDomains }">
             <div class="input-main">
               <Icon class="input-icon" icon="mingcute:mail-line" width="16" height="16" />
-              <input v-model="bindForm.email" type="text" autocomplete="off" :placeholder="$t('emailAccount')" />
+              <input v-model="bindForm.email" type="text" autocomplete="off"
+                :placeholder="hasDomains ? 'username' : $t('emailAccount')" />
             </div>
-            <div class="input-suffix" @click.stop="openSelect">
+            <div v-if="hasDomains" class="input-suffix" @click.stop="openSelect">
               <span>{{ suffix }}</span>
               <Icon icon="mingcute:down-line" width="11" height="11" />
-              <el-select ref="mySelect" v-model="suffix" class="hidden-select">
+              <el-select ref="mySelect" v-model="suffix" class="hidden-select" :popper-class="suffixPopperClass">
                 <el-option v-for="d in domainList" :key="d" :label="d" :value="d" />
               </el-select>
             </div>
@@ -203,7 +370,7 @@
 
 <script setup>
 import router from "@/router";
-import {computed, nextTick, reactive, ref} from "vue";
+import {computed, nextTick, onMounted, reactive, ref} from "vue";
 import {login, register} from "@/request/login.js";
 import {isEmail} from "@/utils/verify-utils.js";
 import {useSettingStore} from "@/store/setting.js";
@@ -215,13 +382,31 @@ import {loginUserInfo} from "@/request/my.js";
 import {permsToRouter} from "@/perm/perm.js";
 import {useI18n} from "vue-i18n";
 import {oauthBindUser, oauthLinuxDoLogin} from "@/request/ouath.js";
-import { getSiteIconUrl } from "@/utils/branding.js";
+import {useServerStore} from "@/store/server.js";
+import {websiteConfig} from "@/request/setting.js";
 
 const {t} = useI18n();
 const accountStore = useAccountStore();
 const userStore = useUserStore();
 const uiStore = useUiStore();
 const settingStore = useSettingStore();
+const serverStore = useServerStore();
+const loginTemplate = computed(() => settingStore.settings?.loginTemplate || 'gradient');
+const currentRegKeyHint = computed(() => {
+  const s = settingStore.settings;
+  if (!s) return '';
+  if (settingStore.lang === 'en' && s.regKeyHintEn) return s.regKeyHintEn;
+  return s.regKeyHint || '';
+});
+const activeServerSelect = ref(serverStore.activeServerId);
+function onServerChange(id) {
+  serverStore.setActiveServer(id);
+  websiteConfig().then(s => {
+    settingStore.settings = s;
+    settingStore.domainList = s.domainList;
+    suffix.value = s.domainList?.[0] || '';
+  }).catch(() => {});
+}
 const loginLoading = ref(false);
 const bindLoading = ref(false);
 const oauthLoading = ref(false);
@@ -236,9 +421,23 @@ const mySelect = ref();
 const suffix = ref('');
 const registerForm = reactive({ email: '', password: '', confirmPassword: '', code: null });
 const domainList = settingStore.domainList;
+const hasDomains = computed(() => domainList && domainList.length > 0);
+const suffixPopperClass = computed(() =>
+  ['glassmorphism', 'aurora', 'terminal'].includes(settingStore.settings?.loginTemplate)
+    ? 'xi-dark-login-dropdown'
+    : ''
+);
 const registerLoading = ref(false);
-const siteIconUrl = computed(() => settingStore.settings.siteIcon ? getSiteIconUrl(settingStore.settings.siteIcon) : '');
 suffix.value = domainList[0];
+
+if (serverStore.isStandalone && !settingStore.settings?.title && serverStore.servers.length > 0) {
+  websiteConfig().then(s => {
+    settingStore.settings = s;
+    settingStore.domainList = s.domainList;
+    if (s.domainList?.[0]) suffix.value = s.domainList[0];
+  }).catch(() => {});
+}
+
 const verifyShow = ref(false);
 let verifyToken = '';
 let turnstileId = null;
@@ -294,19 +493,20 @@ function bind() {
   if (bindForm.email.length < settingStore.settings.minEmailPrefix) {
     ElMessage({ message: t('minEmailPrefix', { msg: settingStore.settings.minEmailPrefix }), type: 'error', plain: true }); return;
   }
-  if (!isEmail(bindForm.email + suffix.value)) { ElMessage({ message: t('notEmailMsg'), type: 'error', plain: true }); return; }
+  const bindSuffix = hasDomains.value ? suffix.value : '';
+  if (!isEmail(bindForm.email + bindSuffix)) { ElMessage({ message: t('notEmailMsg'), type: 'error', plain: true }); return; }
   if (settingStore.settings.regKey === 0 && !bindForm.code) {
     ElMessage({ message: t('emptyRegKeyMsg'), type: 'error', plain: true }); return;
   }
   bindLoading.value = true;
-  oauthBindUser({ email: bindForm.email + suffix.value, oauthUserId: bindForm.oauthUserId, code: bindForm.code })
+  oauthBindUser({ email: bindForm.email + bindSuffix, oauthUserId: bindForm.oauthUserId, code: bindForm.code })
     .then(data => { saveToken(data.token); })
     .catch(() => { bindLoading.value = false; });
 }
 
 const submit = () => {
   if (!form.email) { ElMessage({ message: t('emptyEmailMsg'), type: 'error', plain: true }); return; }
-  const email = form.email + (settingStore.settings.loginDomain === 0 ? suffix.value : '');
+  const email = form.email + (settingStore.settings.loginDomain === 0 && hasDomains.value ? suffix.value : '');
   if (!isEmail(email)) { ElMessage({ message: t('notEmailMsg'), type: 'error', plain: true }); return; }
   if (!form.password) { ElMessage({ message: t('emptyPwdMsg'), type: 'error', plain: true }); return; }
   loginLoading.value = true;
@@ -316,7 +516,8 @@ const submit = () => {
 };
 
 async function saveToken(token) {
-  localStorage.setItem('token', token);
+  const sid = serverStore.activeServer?.id || 'local'
+  serverStore.setToken(sid, token)
   const user = await loginUserInfo();
   accountStore.currentAccountId = user.account.accountId;
   accountStore.currentAccount = user.account;
@@ -333,7 +534,8 @@ function submitRegister() {
   if (registerForm.email.length < settingStore.settings.minEmailPrefix) {
     ElMessage({ message: t('minEmailPrefix', { msg: settingStore.settings.minEmailPrefix }), type: 'error', plain: true }); return;
   }
-  if (!isEmail(registerForm.email + suffix.value)) { ElMessage({ message: t('notEmailMsg'), type: 'error', plain: true }); return; }
+  const regSuffix = hasDomains.value ? suffix.value : '';
+  if (!isEmail(registerForm.email + regSuffix)) { ElMessage({ message: t('notEmailMsg'), type: 'error', plain: true }); return; }
   if (!registerForm.password) { ElMessage({ message: t('emptyPwdMsg'), type: 'error', plain: true }); return; }
   if (registerForm.password.length < 6) { ElMessage({ message: t('pwdLengthMsg'), type: 'error', plain: true }); return; }
   if (registerForm.password !== registerForm.confirmPassword) {
@@ -357,7 +559,7 @@ function submitRegister() {
     return;
   }
   registerLoading.value = true;
-  register({ email: registerForm.email + suffix.value, password: registerForm.password, token: verifyToken, code: registerForm.code })
+  register({ email: registerForm.email + regSuffix, password: registerForm.password, token: verifyToken, code: registerForm.code })
     .then(({ regVerifyOpen }) => {
       show.value = 'login';
       Object.assign(registerForm, { email: '', password: '', confirmPassword: '', code: '' });
@@ -382,9 +584,40 @@ function submitRegister() {
 
 <style>
 .el-select-dropdown__item { padding: 0 15px; }
+
+/* ── Dark login templates: readable suffix dropdown ── */
+.xi-dark-login-dropdown {
+  background: #16121e !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+.xi-dark-login-dropdown .el-select-dropdown__list {
+  padding: 4px 0;
+}
+.xi-dark-login-dropdown .el-select-dropdown__item {
+  color: rgba(240, 240, 255, 0.80);
+}
+.xi-dark-login-dropdown .el-select-dropdown__item.is-hovering {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f0f0ff;
+}
+.xi-dark-login-dropdown .el-select-dropdown__item.is-selected {
+  color: var(--el-color-primary);
+  font-weight: 600;
+}
+.xi-dark-login-dropdown .el-popper__arrow::before {
+  background: #16121e !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
 </style>
 
 <style lang="scss" scoped>
+/* ══════════════════════════════════════════════════════════════════════════════
+   Login Page: Eastern Aesthetic Base Styles / 东方美学登录页
+   ──────────────────────────────────────────────────────────────────────────────
+   - Jade-inspired color palette
+   - Refined, calm visual design
+   - Organic animations
+   ══════════════════════════════════════════════════════════════════════════════ */
 /* ── Full-page centered layout ── */
 .login-page {
   position: relative;
@@ -394,21 +627,21 @@ function submitRegister() {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  /* Light mode: 淡紫渐变背景 */
+  /* Light mode: warm jade-tinted background */
   background:
-    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(99,102,241,0.10) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 100%, rgba(139,92,246,0.10) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(59,130,246,0.06) 0%, transparent 60%),
-    #f7f6ff;
+    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(61,139,132,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 100%, rgba(90,158,150,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(122,179,172,0.05) 0%, transparent 60%),
+    #fafaf8;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 :global(.dark) .login-page {
   background:
-    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(99,102,241,0.18) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 100%, rgba(139,92,246,0.14) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(59,130,246,0.08) 0%, transparent 60%),
-    #09090e;
+    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(61,139,132,0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 100%, rgba(90,158,150,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(122,179,172,0.06) 0%, transparent 60%),
+    #0c0f12;
 }
 
 /* ── Background decoration ── */
@@ -419,75 +652,75 @@ function submitRegister() {
   overflow: hidden;
 }
 
-/* 渐变网格线 */
+/* Subtle grid lines */
 .bg-grid {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(99,102,241,0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99,102,241,0.06) 1px, transparent 1px);
-  background-size: 44px 44px;
+    linear-gradient(rgba(61,139,132,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(61,139,132,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
   mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
 }
 
-/* 装饰光晕球 */
+/* Decorative orbs */
 .bg-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(72px);
+  filter: blur(80px);
 }
 
 .bg-orb-1 {
   width: 520px;
   height: 520px;
-  background: radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(61,139,132,0.18) 0%, transparent 70%);
   top: -180px;
   right: -80px;
-  animation: orb-drift-1 14s ease-in-out infinite;
+  animation: orb-drift-1 18s ease-in-out infinite;
 }
 
 .bg-orb-2 {
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(90,158,150,0.14) 0%, transparent 70%);
   bottom: -120px;
   left: -60px;
-  animation: orb-drift-2 18s ease-in-out infinite;
+  animation: orb-drift-2 22s ease-in-out infinite;
 }
 
 .bg-orb-3 {
   width: 260px;
   height: 260px;
-  background: radial-gradient(circle, rgba(59,130,246,0.16) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(122,179,172,0.12) 0%, transparent 70%);
   top: 35%;
   right: 18%;
-  animation: orb-drift-3 22s ease-in-out infinite;
+  animation: orb-drift-3 26s ease-in-out infinite;
 }
 
 @keyframes orb-drift-1 {
   0%, 100% { transform: translate(0, 0) scale(1); }
-  33%       { transform: translate(-25px, 18px) scale(1.04); }
-  66%       { transform: translate(12px, -22px) scale(0.97); }
+  33%       { transform: translate(-20px, 15px) scale(1.03); }
+  66%       { transform: translate(10px, -18px) scale(0.98); }
 }
 @keyframes orb-drift-2 {
   0%, 100% { transform: translate(0, 0) scale(1); }
-  33%       { transform: translate(20px, -28px) scale(1.03); }
-  66%       { transform: translate(-18px, 15px) scale(0.98); }
+  33%       { transform: translate(18px, -24px) scale(1.02); }
+  66%       { transform: translate(-15px, 12px) scale(0.98); }
 }
 @keyframes orb-drift-3 {
   0%, 100% { transform: translate(0, 0) scale(1); }
-  50%       { transform: translate(-20px, -24px) scale(1.06); }
+  50%       { transform: translate(-15px, -20px) scale(1.04); }
 }
 
-/* 角落装饰色块 */
+/* Top decorative bar */
 .bg-layer::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6, #3b82f6);
-  opacity: 0.5;
+  height: 2px;
+  background: var(--xi-gradient);
+  opacity: 0.4;
 }
 
 /* ── Card wrapper ── */
@@ -500,72 +733,66 @@ function submitRegister() {
   width: 100%;
   max-height: 100vh;
   overflow-y: auto;
-  padding: 24px 16px;
+  padding: 28px 18px;
 }
 
 /* ── Auth card ── */
 .auth-card {
   width: 100%;
-  max-width: 380px;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 18px;
-  padding: 28px 28px 24px;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--xi-radius-lg);
+  padding: 32px 32px 28px;
   box-shadow:
-    0 0 0 1px rgba(99, 102, 241, 0.06),
-    0 4px 24px -4px rgba(99, 102, 241, 0.12),
-    0 20px 60px -12px rgba(99, 102, 241, 0.10),
-    0 0 0 0 transparent;
+    0 0 0 1px rgba(61, 139, 132, 0.04),
+    0 4px 28px -4px rgba(61, 139, 132, 0.10),
+    0 20px 60px -12px rgba(61, 139, 132, 0.08);
 
   @media (max-width: 460px) {
-    padding: 22px 18px 20px;
-    border-radius: 14px;
+    padding: 24px 20px 22px;
+    border-radius: var(--xi-radius);
   }
 }
 
 :global(.dark) .auth-card {
-  background: rgba(15, 15, 22, 0.80);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  border-color: rgba(99, 102, 241, 0.15);
+  background: rgba(18, 22, 26, 0.85);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border-color: rgba(61, 139, 132, 0.12);
   box-shadow:
-    0 0 0 1px rgba(99, 102, 241, 0.10),
-    0 4px 24px -4px rgba(0, 0, 0, 0.4),
-    0 20px 60px -12px rgba(0, 0, 0, 0.3);
+    0 0 0 1px rgba(61, 139, 132, 0.08),
+    0 4px 28px -4px rgba(0, 0, 0, 0.35),
+    0 20px 60px -12px rgba(0, 0, 0, 0.25);
 }
 
 /* ── Card header ── */
 .card-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .logo-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--xi-radius);
   background: var(--xi-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 3px 10px rgba(99, 102, 241, 0.30);
-}
-
-.site-logo-image {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  display: block;
+  box-shadow: 
+    0 3px 12px rgba(61, 139, 132, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .app-name {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--el-text-color-primary);
   margin: 0;
@@ -594,32 +821,39 @@ function submitRegister() {
   }
 }
 
+/* ── Server selector ── */
+.server-selector {
+  margin-bottom: 12px;
+
+  :deep(.el-select) { width: 100%; }
+}
+
 /* ── Tab bar ── */
 .tab-bar {
   display: flex;
-  background: rgba(99, 102, 241, 0.07);
-  border-radius: 8px;
-  padding: 3px;
-  margin-bottom: 16px;
+  background: rgba(61, 139, 132, 0.06);
+  border-radius: var(--xi-radius);
+  padding: 4px;
+  margin-bottom: 18px;
 }
 
 .tab {
   flex: 1;
-  padding: 6px 0;
-  font-size: 13px;
-  font-weight: 500;
+  padding: 8px 0;
+  font-size: 13.5px;
+  font-weight: 520;
   color: var(--el-text-color-secondary);
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--xi-radius-sm);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.active {
     background: var(--el-bg-color);
-    color: #6366f1;
+    color: var(--el-color-primary);
     font-weight: 600;
-    box-shadow: 0 1px 4px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 1px 6px rgba(61, 139, 132, 0.12);
   }
 }
 
@@ -628,6 +862,47 @@ function submitRegister() {
   display: flex;
   flex-direction: column;
   gap: 11px;
+}
+
+.register-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+
+  > * {
+    grid-column: 1 / -1;
+  }
+
+  > .field-password {
+    grid-column: 1;
+  }
+
+  > .field-confirm {
+    grid-column: 2;
+  }
+
+  @media (max-width: 340px) {
+    grid-template-columns: 1fr;
+
+    > .field-password,
+    > .field-confirm {
+      grid-column: 1;
+    }
+  }
+}
+
+.auth-card.is-register {
+  .card-header {
+    margin-bottom: 14px;
+  }
+
+  .card-heading {
+    margin-bottom: 12px;
+  }
+
+  .tab-bar {
+    margin-bottom: 12px;
+  }
 }
 
 .field {
@@ -674,19 +949,20 @@ function submitRegister() {
 /* ── Input group (email + suffix) ── */
 .input-group {
   display: flex;
+  align-items: center;
   border: 1px solid var(--el-border-color);
-  border-radius: 9px;
-  overflow: hidden;
+  border-radius: var(--xi-radius);
   background: var(--el-fill-color-blank);
   transition: border-color 0.2s, box-shadow 0.2s;
+  overflow: hidden;
 
   &:focus-within {
     border-color: var(--el-color-primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.10);
+    box-shadow: 0 0 0 3px rgba(61, 139, 132, 0.08);
   }
 
-  &.has-suffix .input-main {
-    border-right: 1px solid var(--el-border-color);
+  .input-suffix {
+    border-left: 1px solid var(--el-border-color);
   }
 }
 
@@ -698,13 +974,14 @@ function submitRegister() {
 
   &.standalone {
     border: 1px solid var(--el-border-color);
-    border-radius: 9px;
+    border-radius: var(--xi-radius);
     background: var(--el-fill-color-blank);
     transition: border-color 0.2s, box-shadow 0.2s;
+    overflow: hidden;
 
     &:focus-within {
       border-color: var(--el-color-primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.10);
+      box-shadow: 0 0 0 3px rgba(61, 139, 132, 0.08);
     }
 
     &.error {
@@ -715,9 +992,9 @@ function submitRegister() {
 
   input {
     flex: 1;
-    height: 36px;
-    padding: 0 10px 0 0;
-    font-size: 13.5px;
+    height: 40px;
+    padding: 0 12px 0 0;
+    font-size: 14px;
     color: var(--el-text-color-primary);
     min-width: 0;
 
@@ -745,6 +1022,8 @@ function submitRegister() {
   flex-shrink: 0;
   transition: all 0.15s;
   user-select: none;
+  background: transparent;
+  box-shadow: none;
 
   &:hover {
     background: var(--el-fill-color-light);
@@ -783,32 +1062,32 @@ function submitRegister() {
 /* ── Primary button ── */
 .primary-btn {
   width: 100%;
-  height: 37px;
+  height: 42px;
   border: none;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+  border-radius: var(--xi-radius);
+  background: var(--xi-gradient);
   color: #fff;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.2s;
-  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.28), 0 0 0 1px rgba(99,102,241,0.12);
-  margin-top: 2px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--xi-shadow-md), 0 0 0 1px rgba(0,0,0,0.06);
+  margin-top: 4px;
   letter-spacing: 0.01em;
 
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 5px 18px rgba(99, 102, 241, 0.36), 0 0 0 1px rgba(99,102,241,0.16);
-    background: linear-gradient(135deg, #4f46e5 0%, #6d28d9 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(61, 139, 132, 0.30), 0 0 0 1px rgba(0,0,0,0.08);
+    background: var(--xi-gradient-hover);
   }
 
   &:active:not(:disabled) {
     transform: translateY(0);
-    box-shadow: 0 1px 6px rgba(99, 102, 241, 0.22);
+    box-shadow: var(--xi-shadow-sm);
   }
 
   &:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -855,6 +1134,23 @@ function submitRegister() {
   }
 }
 
+/* ── Footer ── */
+.page-footer {
+  margin-top: 14px;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    color: var(--el-text-color-placeholder);
+    text-decoration: none;
+    transition: color 0.15s;
+
+    &:hover { color: var(--el-text-color-secondary); }
+  }
+}
+
 /* ── Utility ── */
 .err-text { font-size: 12px; color: var(--el-color-danger); }
 .spin { animation: spin-anim 0.7s linear infinite; }
@@ -881,5 +1177,45 @@ function submitRegister() {
 :deep(.el-input-group__append) {
   padding: 0 8px;
   background: var(--el-bg-color);
+}
+
+/* ── Login page templates — each in its own file ──
+   To add/modify a template: edit templates/*.scss
+   To add a new template: create templates/xxx.scss
+   and import it below, then add the CSS class + Vue logic.
+   ── */
+// stylelint-disable
+/* Login page templates — edit templates/*.scss to customize */
+@import './templates/gradient';
+@import './templates/minimal';
+@import './templates/split';
+@import './templates/glassmorphism';
+@import './templates/aurora';
+@import './templates/geometric';
+@import './templates/envelope';
+@import './templates/terminal';
+@import './templates/passport';
+
+/* Keep the registration layout compact even when a template customizes
+   the generic .fields container. These rules intentionally follow imports. */
+.login-page .register-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+
+  > * { grid-column: 1 / -1; }
+  > .field-password { grid-column: 1; }
+  > .field-confirm { grid-column: 2; }
+}
+
+@media (max-width: 340px) {
+  .login-page .register-fields {
+    grid-template-columns: 1fr;
+
+    > .field-password,
+    > .field-confirm {
+      grid-column: 1;
+    }
+  }
 }
 </style>
