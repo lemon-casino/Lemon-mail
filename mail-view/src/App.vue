@@ -20,4 +20,11 @@ function applyTheme(theme) {
 }
 applyTheme(settingStore.settings?.colorTheme)
 watch(() => settingStore.settings?.colorTheme, applyTheme)
+
+// Apply login template to <html> so app skins can echo the login atmosphere
+function applyLoginTemplate(template) {
+  document.documentElement.dataset.loginTemplate = template || 'default'
+}
+applyLoginTemplate(settingStore.settings?.loginTemplate)
+watch(() => settingStore.settings?.loginTemplate, applyLoginTemplate)
 </script>

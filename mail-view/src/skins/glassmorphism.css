@@ -1,0 +1,129 @@
+/* ══════════════════════════════════════════════════════════════════════
+   App Skin: Glassmorphism（与登录模板 glassmorphism 联动的后台皮肤）
+   ──────────────────────────────────────────────────────────────────────
+   登录页是深色毛玻璃，后台也延续同一材质：深墨蓝底 + 主题色光晕 +
+   噪点纹理 + 半透明毛玻璃面板。强调色一律沿用 colorTheme 变量，
+   皮肤只负责材质与底色，因此与全部 7 个主题色兼容。
+
+   作用域：html[data-login-template="glassmorphism"]，:not(:has(.login-page))
+   保证登录页本身不受影响（登录页卸载后皮肤才生效）。
+   浅色态保留日/夜切换的自由：白纸玻璃变体，不强制深色。
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* 深色玻璃（招牌形态）────────────────────────────────────────────── */
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) {
+	--el-bg-color: #0b0e17;
+	--el-bg-color-page: #07090f;
+	--el-bg-color-overlay: #141930;
+	--el-border-color: rgba(255, 255, 255, 0.14) !important;
+	--el-border-color-extra-light: rgba(255, 255, 255, 0.05);
+	--el-border-color-lighter: rgba(255, 255, 255, 0.07);
+	--el-border-color-light: rgba(255, 255, 255, 0.10);
+	--el-fill-color-extra-light: rgba(255, 255, 255, 0.03);
+	--el-fill-color-light: rgba(255, 255, 255, 0.05);
+	--el-fill-color: rgba(255, 255, 255, 0.08);
+	--el-fill-color-dark: rgba(255, 255, 255, 0.12);
+
+	/* 与登录页玻璃卡片同源的半透明面板 */
+	--aside-backgound: rgba(11, 14, 23, 0.60);
+	--loadding-background: rgba(8, 10, 17, 0.85);
+	--email-hover-background: rgba(255, 255, 255, 0.05);
+	--choose-account-background: rgba(255, 255, 255, 0.07);
+	--base-fill: rgba(255, 255, 255, 0.05);
+	--extra-light-fill: rgba(255, 255, 255, 0.03);
+	--light-ill: rgba(255, 255, 255, 0.05);
+	--light-border: rgba(255, 255, 255, 0.09);
+	--light-border-color: rgba(255, 255, 255, 0.09);
+	--base-border-color: rgba(255, 255, 255, 0.12);
+	--message-block-color: rgba(10, 13, 22, 0.35);
+}
+
+/* 环境底：登录页同源的深墨蓝渐变 + 主题色光晕 + 噪点 */
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .layout {
+	background: #0b0e17;
+	background-image:
+		url("data:image/svg+xml,%3Csvg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E"),
+		radial-gradient(circle at 78% 18%, var(--xi-orb-bg-top), transparent 32%),
+		radial-gradient(circle at 12% 80%, var(--xi-orb-bg-bottom), transparent 34%),
+		linear-gradient(145deg, #080a11, #111526 52%, #090b13);
+}
+
+/* 内容区透出环境底，面板自己提供对比度 */
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .main-area {
+	background: transparent;
+	background-image: none;
+}
+
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .top-bar {
+	background: rgba(11, 14, 23, 0.55);
+	backdrop-filter: blur(18px) saturate(1.2);
+	-webkit-backdrop-filter: blur(18px) saturate(1.2);
+	border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .aside {
+	background: transparent;
+	backdrop-filter: blur(18px) saturate(1.2);
+	-webkit-backdrop-filter: blur(18px) saturate(1.2);
+	border-right-color: rgba(255, 255, 255, 0.06);
+}
+
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .aside-show {
+	box-shadow: 0 0 24px rgba(0, 0, 0, 0.45);
+}
+
+/* Island 布局：浮动岛变成玻璃卡片 */
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .lm-island .main-area {
+	background: rgba(14, 17, 28, 0.55);
+	backdrop-filter: blur(20px) saturate(1.25);
+	-webkit-backdrop-filter: blur(20px) saturate(1.25);
+	border-color: rgba(255, 255, 255, 0.07);
+	box-shadow: 0 12px 34px rgba(0, 0, 0, 0.4);
+}
+
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .lm-island .top-bar {
+	background: transparent;
+}
+
+/* 设置页卡片：玻璃面板 */
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .settings-card {
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid rgba(255, 255, 255, 0.07);
+	box-shadow: none;
+}
+
+/* 浅色纸玻璃（尊重日/夜切换）──────────────────────────────────────── */
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) {
+	--email-hover-background: #eef3f2;
+}
+
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .layout {
+	background: #f4f5f7;
+	background-image:
+		radial-gradient(circle at 78% 18%, color-mix(in srgb, var(--xi-orb-bg-top) 35%, transparent), transparent 32%),
+		radial-gradient(circle at 12% 80%, color-mix(in srgb, var(--xi-orb-bg-bottom) 35%, transparent), transparent 34%),
+		linear-gradient(160deg, #f7f8fa, #eef0f4 55%, #e9edf2);
+}
+
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .main-area {
+	background: transparent;
+	background-image: none;
+}
+
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .top-bar {
+	background: rgba(255, 255, 255, 0.62);
+	backdrop-filter: blur(18px) saturate(1.15);
+	-webkit-backdrop-filter: blur(18px) saturate(1.15);
+}
+
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .lm-island .main-area {
+	background: rgba(255, 255, 255, 0.66);
+	backdrop-filter: blur(20px) saturate(1.15);
+	-webkit-backdrop-filter: blur(20px) saturate(1.15);
+	border-color: rgba(0, 0, 0, 0.06);
+	box-shadow: 0 10px 30px rgba(30, 40, 60, 0.10);
+}
+
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .lm-island .top-bar {
+	background: transparent;
+}

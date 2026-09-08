@@ -234,6 +234,12 @@
 @import './themes/sky.css';
 @import './themes/purple.css';
 
+/* ── App skins (template-driven atmosphere) ──
+   Each login template can bring a companion app skin so the whole
+   product reads as one theme. Lives in src/skins/<template>.css
+   ── */
+@import './skins/glassmorphism.css';
+
 .el-input {
   --el-input-text-color: var(--el-text-color-primary) !important;
 }
