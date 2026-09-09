@@ -14,7 +14,12 @@ app.put('/my/resetPassword', async (c) => {
 });
 
 app.delete('/my/delete', async (c) => {
-	await userService.delete(c, userContext.getUserId(c));
+	const userId = userContext.getUserId(c);
+	const userRow = await userService.selectById(c, userId);
+	if (userRow && userRow.email === c.env.admin) {
+		return c.json(result.fail('The administrator account cannot be deleted / The administrator account cannot be deleted'));
+	}
+	await userService.delete(c, userId);
 	return c.json(result.ok());
 });
 

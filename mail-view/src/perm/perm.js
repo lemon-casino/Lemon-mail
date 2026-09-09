@@ -46,8 +46,7 @@ const sysSettingSections = [
     'integration',
     'sub-workers',
     'appearance',
-    'servers',
-    'about'
+    'servers'
 ]
 
 const routers = {

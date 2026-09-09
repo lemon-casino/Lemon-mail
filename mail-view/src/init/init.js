@@ -9,7 +9,7 @@ import {websiteConfig} from "@/request/setting.js";
 import i18n from "@/i18n/index.js";
 
 export async function init() {
-    document.title = '\u200B'
+    // 静态标题由 worker 注入站点标题，这里不再置空，避免标签页闪烁
 
     const settingStore = useSettingStore();
     const userStore = useUserStore();

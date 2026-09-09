@@ -48,7 +48,7 @@
         </div>
       </div>
     </div>
-    <div class="del-email" v-perm="'my:delete'">
+    <div class="del-email" v-perm="'my:delete'" v-if="!isAdmin">
       <div class="title">{{$t('deleteUser')}}</div>
       <div style="color: var(--regular-text-color);">
         {{$t('delAccountMsg')}}
@@ -67,7 +67,7 @@
   </div>
 </template>
 <script setup>
-import {reactive, ref, defineOptions} from 'vue'
+import {reactive, ref, computed, defineOptions} from 'vue'
 import {Icon} from "@iconify/vue";
 import {resetPassword, userDelete} from "@/request/my.js";
 import {useUserStore} from "@/store/user.js";
@@ -83,6 +83,11 @@ const userStore = useUserStore();
 const setPwdLoading = ref(false)
 const setNameShow = ref(false)
 const accountName = ref(null)
+
+// 管理员不允许删除自己的账户（防止误删管理员）
+const isAdmin = computed(() =>
+  userStore.user?.type === 0 || (userStore.user?.permKeys || []).includes('*')
+)
 
 defineOptions({
   name: 'setting'

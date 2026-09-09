@@ -61,7 +61,6 @@ const sections = computed(() => {
   if (serverStore.isStandalone) {
     list.push({ id: 'servers', routeName: 'sys-setting-servers', icon: 'mingcute:cloud-line', label: 'serverManage' })
   }
-  list.push({ id: 'about', routeName: 'sys-setting-about', icon: 'mingcute:information-line', label: 'about' })
   return list
 })
 
