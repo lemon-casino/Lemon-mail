@@ -7,7 +7,7 @@ import r2Service from './service/r2-service';
 import oauthService from "./service/oauth-service";
 import KvConst from './const/kv-const';
 
-/** 把后台设置的站点标题注入 index.html，避免标签页先闪现打包时的默认标题 */
+/** 把后台设置的站点标题与网站图标注入 index.html，避免标签页先闪现打包时的默认标题/图标 */
 async function serveAssetWithSiteTitle(req, env) {
 	const resp = await env.assets.fetch(req);
 	const contentType = resp.headers.get('content-type') || '';
@@ -15,10 +15,16 @@ async function serveAssetWithSiteTitle(req, env) {
 	try {
 		const setting = await env.kv.get(KvConst.SETTING, { type: 'json' });
 		const title = setting && typeof setting.title === 'string' ? setting.title.trim() : '';
-		if (!title) return resp;
+		const icon = setting && typeof setting.siteIcon === 'string' ? setting.siteIcon.trim() : '';
+		if (!title && !icon) return resp;
 		let html = await resp.text();
-		const safeTitle = title.replace(/[<>&"']/g, '');
-		html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${safeTitle}</title>`);
+		if (title) {
+			const safeTitle = title.replace(/[<>&"']/g, '');
+			html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${safeTitle}</title>`);
+		}
+		if (icon) {
+			html = html.replace(/(<link[^>]*rel="icon"[^>]*href=")[^"]*(")/i, `$1${icon}$2`);
+		}
 		const headers = new Headers(resp.headers);
 		headers.delete('content-length');
 		headers.delete('etag');

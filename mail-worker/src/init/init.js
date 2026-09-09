@@ -44,6 +44,7 @@ const dbInit = {
 		await this.v4_3DB(c);
 		await this.v4_4DB(c);
 		await this.v4_5DB(c);
+		await this.v4_6DB(c);
 		await settingService.refresh(c);
 		return c.text('success');
 	},
@@ -259,6 +260,12 @@ const dbInit = {
 	async v4_5DB(c) {
 		try {
 			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN exclude_own_domain INTEGER NOT NULL DEFAULT 0;`).run();
+		} catch (e) {}
+	},
+
+	async v4_6DB(c) {
+		try {
+			await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN site_icon TEXT NOT NULL DEFAULT '';`).run();
 		} catch (e) {}
 	},
 

@@ -51,6 +51,7 @@ export const setting = sqliteTable('setting', {
 	banMessage: text('ban_message').default('该邮箱已被封禁').notNull(),
 	randomPrefixLength: integer('random_prefix_length').default(8).notNull(),
 	excludeOwnDomain: integer('exclude_own_domain').default(0).notNull(),
+	siteIcon: text('site_icon').default('').notNull(),
 	domainMapping: text('domain_mapping').default('{}').notNull(),
 	emailKeywordBlacklist: text('email_keyword_blacklist').default('').notNull(),
 	senderDomainBlacklist: text('sender_domain_blacklist').default('').notNull(),

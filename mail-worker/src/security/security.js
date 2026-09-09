@@ -85,7 +85,7 @@ const premKey = {
 	'all-email:query': ['/allEmail/list','/allEmail/latest'],
 	'all-email:delete': ['/allEmail/delete','/allEmail/batchDelete'],
 	'setting:query': ['/setting/query', '/setting/globalToken', '/sub-worker/list'],
-	'setting:set': ['/setting/set', '/setting/setBackground','/setting/deleteBackground', '/setting/globalToken/enabled', '/setting/globalToken/generate', '/sub-worker/add', '/sub-worker/test'],
+	'setting:set': ['/setting/set', '/setting/setBackground','/setting/deleteBackground', '/setting/setSiteIcon','/setting/deleteSiteIcon', '/setting/globalToken/enabled', '/setting/globalToken/generate', '/sub-worker/add', '/sub-worker/test'],
 	'analysis:query': ['/analysis/echarts'],
 	'reg-key:add': ['/regKey/add'],
 	'reg-key:query': ['/regKey/list','/regKey/history'],

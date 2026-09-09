@@ -21,7 +21,7 @@
         <span class="ink-caption">{{ $t('privateMailbox') }}</span>
       </div>
       <div class="ink-poster-copy">
-        <span class="ink-eyebrow">XI / MAIL</span>
+        <span class="ink-eyebrow">{{ brandMark }}</span>
         <h2>{{ settingStore.settings.title }}</h2>
         <p>{{ $t('mailInYourControl') }}</p>
       </div>
@@ -120,7 +120,7 @@
         <span>{{ settingStore.settings.title }}</span>
       </div>
       <div class="envelope-postmark">
-        <span>XI MAIL</span>
+        <span>{{ brandMark }}</span>
         <b>{{ new Date().getFullYear() }}</b>
       </div>
       <div class="envelope-airmail"></div>
@@ -129,7 +129,7 @@
 
     <!-- Terminal template: deliberately plain text workstation -->
     <section v-if="loginTemplate === 'terminal'" class="terminal-aside" aria-hidden="true">
-      <pre>XI-MAIL SYSTEM
+      <pre>{{ brandMark }} SYSTEM
 ----------------
 SMTP  READY
 IMAP  READY
@@ -144,7 +144,7 @@ AUTH  WAITING
       <div class="passport-number">XM · {{ new Date().getFullYear() }} · 09</div>
       <div class="passport-stamp">
         <Icon icon="mingcute:mail-send-line" width="25" height="25" />
-        <span>XI MAIL</span>
+        <span>{{ brandMark }}</span>
       </div>
       <div class="passport-route">
         <i></i><span>{{ $t('passportRoute') }}</span><i></i>
@@ -159,7 +159,7 @@ AUTH  WAITING
         <Icon icon="mingcute:more-2-fill" width="15" height="15"/>
       </div>
       <div v-if="loginTemplate === 'terminal'" class="terminal-window-bar" aria-hidden="true">
-        <span>[ XI-MAIL / AUTH ]</span>
+        <span>[ {{ brandMark }} / AUTH ]</span>
         <span>tty-07</span>
       </div>
       <div class="auth-card" :class="{ 'is-register': show !== 'login' }" v-motion :initial="{ opacity: 0, y: 24, scale: 0.98 }" :enter="{ opacity: 1, y: 0, scale: 1, transition: { duration: 400 } }">
@@ -421,6 +421,8 @@ const suffix = ref('');
 const registerForm = reactive({ email: '', password: '', confirmPassword: '', code: null });
 const domainList = settingStore.domainList;
 const hasDomains = computed(() => domainList && domainList.length > 0);
+const brandMark = computed(() => (settingStore.settings?.title || 'MAIL').trim().toUpperCase() || 'MAIL');
+
 const suffixPopperClass = computed(() =>
   uiStore.dark && ['glassmorphism', 'aurora', 'terminal'].includes(settingStore.settings?.loginTemplate)
     ? 'xi-dark-login-dropdown'

@@ -22,6 +22,16 @@ app.put('/setting/setBackground', async (c) => {
 	return c.json(result.ok(key));
 });
 
+app.put('/setting/setSiteIcon', async (c) => {
+	await settingService.setSiteIcon(c, await c.req.json());
+	return c.json(result.ok());
+});
+
+app.delete('/setting/deleteSiteIcon', async (c) => {
+	await settingService.deleteSiteIcon(c);
+	return c.json(result.ok());
+});
+
 app.delete('/setting/deleteBackground', async (c) => {
 	await settingService.deleteBackground(c);
 	return c.json(result.ok());

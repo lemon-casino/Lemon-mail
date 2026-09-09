@@ -66,6 +66,14 @@ const settingService = {
 			settingRow.excludeOwnDomain = 0;
 		}
 
+		if (settingRow.siteIcon === undefined || settingRow.siteIcon === null) {
+			try {
+				await c.env.db.prepare(`ALTER TABLE setting ADD COLUMN site_icon TEXT NOT NULL DEFAULT '';`).run();
+				await this.refresh(c);
+			} catch (e) {}
+			settingRow.siteIcon = '';
+		}
+
 		// Parse managed domains (web-configured), fall back to env domain
 		let managedDomains = [];
 		if (settingRow.managedDomains) {
@@ -253,6 +261,41 @@ const settingService = {
 		return background;
 	},
 
+	async setSiteIcon(c, params) {
+
+		let { icon } = params
+
+		await this.deleteSiteIcon(c);
+
+		if (icon && !icon.startsWith('http')) {
+
+			const file = fileUtils.base64ToFile(icon)
+
+			const arrayBuffer = await file.arrayBuffer();
+			icon = constant.ICON_PREFIX + await fileUtils.getBuffHash(arrayBuffer) + fileUtils.getExtFileName(file.name);
+
+			await r2Service.putObj(c, icon, arrayBuffer, {
+				contentType: file.type,
+				cacheControl: `public, max-age=31536000, immutable`,
+				contentDisposition: `inline; filename="${file.name}"`
+			});
+
+		}
+
+		await orm(c).update(setting).set({ siteIcon: icon }).run();
+		await this.refresh(c);
+		return icon;
+	},
+
+	async deleteSiteIcon(c) {
+		const settingRow = await this.query(c);
+		if (settingRow.siteIcon && !settingRow.siteIcon.startsWith('http')) {
+			await r2Service.delete(c, settingRow.siteIcon);
+		}
+		await orm(c).update(setting).set({ siteIcon: '' }).run();
+		await this.refresh(c);
+	},
+
 	async getGlobalToken(c) {
 		const token   = await c.env.kv.get(KvConst.GLOBAL_TOKEN) || '';
 		const enabled = (await c.env.kv.get(KvConst.GLOBAL_TOKEN_ENABLED)) === '1';
@@ -303,6 +346,7 @@ const settingService = {
 			minEmailPrefix: settingRow.minEmailPrefix,
 			randomPrefixLength: settingRow.randomPrefixLength,
 			excludeOwnDomain: settingRow.excludeOwnDomain ?? 0,
+			siteIcon: settingRow.siteIcon || '',
 		emailKeywordBlacklist: settingRow.emailKeywordBlacklist || [],
 		domainMapping: settingRow.domainMapping || {},
 		regKeyHint: settingRow.regKeyHint || '',

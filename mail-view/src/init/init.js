@@ -11,6 +11,18 @@ import i18n from "@/i18n/index.js";
 export async function init() {
     // 静态标题由 worker 注入站点标题，这里不再置空，避免标签页闪烁
 
+    // 应用后台设置的网站图标（favicon）
+    function applySiteIcon(icon) {
+        if (!icon) return;
+        let link = document.querySelector('link[rel="icon"]');
+        if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+        }
+        link.href = icon;
+    }
+
     const settingStore = useSettingStore();
     const userStore = useUserStore();
     const accountStore = useAccountStore();
@@ -45,6 +57,7 @@ export async function init() {
         settingStore.settings = setting;
         settingStore.domainList = setting.domainList;
         document.title = setting.title;
+        applySiteIcon(setting.siteIcon);
 
         if (user) {
             accountStore.currentAccountId = user.account.accountId;
@@ -68,6 +81,7 @@ export async function init() {
             settingStore.settings = setting;
             settingStore.domainList = setting.domainList;
             document.title = setting.title;
+        applySiteIcon(setting.siteIcon);
         } catch {
             if (!serverStore.isStandalone) {
                 serverStore.forceStandalone();

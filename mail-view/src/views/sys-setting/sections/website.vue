@@ -4,6 +4,20 @@
       <div class="card-title">{{ $t('websiteSetting') }}</div>
       <div class="card-content">
         <div class="setting-item">
+          <div>
+            <span>{{ $t('siteIcon') }}</span>
+            <el-tooltip effect="dark" :content="$t('siteIconDesc')">
+              <Icon class="warning" icon="mingcute:information-line" width="18" height="18"/>
+            </el-tooltip>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <img :src="iconPreview" alt="icon" style="width:32px;height:32px;border-radius:6px;object-fit:cover;border:1px solid var(--el-border-color-lighter)"/>
+            <el-button size="small" type="primary" :loading="iconUploading" @click="iconInputRef && iconInputRef.click()">{{ $t('uploadIcon') }}</el-button>
+            <el-button v-if="setting.siteIcon" size="small" :loading="iconUploading" @click="resetIcon">{{ $t('restoreIcon') }}</el-button>
+            <input ref="iconInputRef" type="file" accept="image/png,image/jpeg,image/webp,image/x-icon,image/svg+xml" style="display:none" @change="onIconChange"/>
+          </div>
+        </div>
+        <div class="setting-item">
           <div><span>{{ $t('websiteReg') }}</span></div>
           <div>
             <el-switch @change="change" :before-change="beforeChange" :active-value="0" :inactive-value="1"
@@ -132,13 +146,65 @@ import {computed, defineOptions, ref} from "vue";
 import {Icon} from "@iconify/vue";
 import {useI18n} from "vue-i18n";
 import {useSysSetting} from "../use-sys-setting.js";
+import {setSiteIcon, deleteSiteIcon} from "@/request/setting.js";
 
 defineOptions({
   name: 'sys-setting-website'
 })
 
 const {t, locale} = useI18n()
-const {setting, settingLoading, editSetting, change, beforeChange, onSettingsLoaded} = useSysSetting()
+const {setting, settingLoading, editSetting, change, beforeChange, onSettingsLoaded, getSettings} = useSysSetting()
+
+const iconInputRef = ref(null)
+const iconUploading = ref(false)
+const iconPreview = computed(() => {
+  const icon = setting.value.siteIcon
+  if (!icon) return '/public/mail.png'
+  return icon.startsWith('http') ? icon : '/' + icon.replace(/^\//, '')
+})
+
+async function onIconChange(e) {
+  const file = e.target.files && e.target.files[0]
+  e.target.value = ''
+  if (!file) return
+  if (file.size > 2 * 1024 * 1024) {
+    ElMessage({message: t('iconTooLarge'), type: 'error', plain: true})
+    return
+  }
+  iconUploading.value = true
+  try {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+    await setSiteIcon(base64)
+    ElMessage({message: t('saveSuccessMsg'), type: 'success', plain: true})
+    onSettingsRefresh()
+  } catch (err) {
+    ElMessage({message: t('saveFail'), type: 'error', plain: true})
+  } finally {
+    iconUploading.value = false
+  }
+}
+
+async function resetIcon() {
+  iconUploading.value = true
+  try {
+    await deleteSiteIcon()
+    ElMessage({message: t('saveSuccessMsg'), type: 'success', plain: true})
+    onSettingsRefresh()
+  } catch (err) {
+    ElMessage({message: t('saveFail'), type: 'error', plain: true})
+  } finally {
+    iconUploading.value = false
+  }
+}
+
+function onSettingsRefresh() {
+  getSettings()
+}
 
 const editTitleShow = ref(false)
 const editTitle = ref('')
