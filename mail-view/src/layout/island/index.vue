@@ -1,7 +1,13 @@
 <template>
   <div class="island-nav-shell">
     <nav class="island-rail" :aria-label="$t('islandNavigation')">
-      <button class="island-logo" :aria-label="settingStore.settings.title" @click="goHome">
+      <button
+        class="island-logo"
+        :class="{ active: launcherOpen || launcherHasActiveRoute }"
+        :aria-label="$t('islandNavigation')"
+        :aria-expanded="launcherOpen"
+        @click="launcherOpen = !launcherOpen"
+      >
         <Icon icon="mingcute:mail-send-fill" width="20" height="20" />
       </button>
 
@@ -27,16 +33,6 @@
         </el-tooltip>
       </div>
 
-      <button
-        class="island-item island-more"
-        :class="{ active: launcherOpen || launcherHasActiveRoute }"
-        :aria-label="$t('moreNavigation')"
-        @click="launcherOpen = !launcherOpen"
-      >
-        <Icon icon="mingcute:grid-2-line" width="19" height="19" />
-        <span class="mobile-label">{{ $t('moreNavigation') }}</span>
-        <span v-if="moreHasTransferBadge" class="island-dot"></span>
-      </button>
     </nav>
 
     <Transition name="launcher">
@@ -112,7 +108,6 @@ const launcherNames = computed(() => [
   ...visibleAdminNav.value,
 ].map(item => item.name))
 const launcherHasActiveRoute = computed(() => launcherNames.value.includes(route.meta.name))
-const moreHasTransferBadge = computed(() => launcherNames.value.includes('transfer') && transferStore.pendingCount > 0)
 
 function isActive(item) {
   return route.meta.name === item.name
@@ -121,11 +116,6 @@ function isActive(item) {
 function navigate(item) {
   launcherOpen.value = false
   if (!isActive(item)) router.push({name: item.name})
-}
-
-function goHome() {
-  const inbox = visibleMainNav.value.find(item => item.name === 'email')
-  if (inbox) navigate(inbox)
 }
 
 function handleEscape(event) {
@@ -253,10 +243,6 @@ onBeforeUnmount(() => {
   .island-item.active:hover {
     color: var(--el-color-primary);
   }
-}
-
-.island-more {
-  flex-shrink: 0;
 }
 
 .island-dot {
@@ -424,7 +410,16 @@ onBeforeUnmount(() => {
     box-shadow: 0 -4px 14px rgba(0,0,0,.05);
   }
 
-  .island-logo { display: none; }
+  .island-logo {
+    display: grid;
+    width: min(15vw, 58px);
+    height: 50px;
+    margin: 0;
+    flex-direction: column;
+    gap: 3px;
+    color: var(--el-color-primary);
+    border-radius: 10px;
+  }
 
   .island-primary {
     flex: 1;
@@ -468,9 +463,9 @@ onBeforeUnmount(() => {
     }
   }
 
-  .island-more {
-    flex-shrink: 1;
-    border: 0;
+  .island-logo.active {
+    background: var(--el-fill-color-light);
+    color: var(--el-color-primary);
   }
 
   .mobile-label {
@@ -484,7 +479,10 @@ onBeforeUnmount(() => {
     text-overflow: ellipsis;
   }
 
-  .island-dot { top: 5px; right: 10px; }
+  .island-dot {
+    top: 5px;
+    right: 10px;
+  }
 
   .island-launcher {
     top: auto;
