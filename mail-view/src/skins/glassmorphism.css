@@ -42,7 +42,7 @@
 html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .layout {
 	background: #0b0e17;
 	background-image:
-		url("data:image/svg+xml,%3Csvg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E"),
+		url("data:image/svg+xml,%3Csvg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.14'/%3E%3C/svg%3E"),
 		radial-gradient(circle at 78% 18%, var(--xi-orb-bg-top), transparent 32%),
 		radial-gradient(circle at 12% 80%, var(--xi-orb-bg-bottom), transparent 34%),
 		linear-gradient(145deg, #080a11, #111526 52%, #090b13);
