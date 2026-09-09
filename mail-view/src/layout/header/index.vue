@@ -99,6 +99,7 @@ import {setExtend} from "@/utils/day.js"
 import i18n from "@/i18n/index.js"
 import {useServerStore} from "@/store/server.js"
 import {saveLang} from "@/request/my.js"
+import {openDark} from "@/utils/theme-utils.js"
 
 const {t} = useI18n();
 const route = useRoute();
@@ -146,43 +147,6 @@ async function copyEmail(email) {
 }
 
 function openNotice() { uiStore.showNotice() }
-
-function openDark(e) {
-  const nextIsDark = !uiStore.dark
-  const root = document.documentElement
-
-  if (!document.startViewTransition) {
-    switchDark(nextIsDark, root);
-    return
-  }
-
-  const x = e.clientX
-  const y = e.clientY
-  const maxX = Math.max(x, window.innerWidth - x)
-  const maxY = Math.max(y, window.innerHeight - y)
-  const endRadius = Math.hypot(maxX, maxY)
-
-  root.setAttribute('data-theme-to', nextIsDark ? 'dark' : 'light')
-  root.style.setProperty('--vt-x', `${x}px`)
-  root.style.setProperty('--vt-y', `${y}px`)
-  root.style.setProperty('--vt-end-radius', `${endRadius + 10}px`)
-
-  const transition = document.startViewTransition(() => {
-    switchDark(nextIsDark, root);
-  })
-
-  transition.finished.finally(() => {
-    root.removeAttribute('data-theme-to')
-  })
-}
-
-function switchDark(nextIsDark, root) {
-  root.setAttribute('class', nextIsDark ? 'dark' : '')
-  const metaTag = document.getElementById('theme-color-meta');
-  const isMobile = !window.matchMedia("(pointer: fine) and (hover: hover)").matches;
-  metaTag.setAttribute('content', nextIsDark ? (isMobile ? '#141414' : '#000000') : (isMobile ? '#FFFFFF' : '#F1F1F1'));
-  uiStore.dark = nextIsDark
-}
 
 function toggleLang() {
   const next = settingStore.lang === 'zh' ? 'en' : 'zh'

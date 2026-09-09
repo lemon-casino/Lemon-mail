@@ -208,7 +208,7 @@
   }
 }
 
-:global(.dark) .template-split {
+html.dark .template-split {
   .card-wrapper {
     background: #111418;
   }

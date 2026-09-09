@@ -288,7 +288,7 @@
   }
 }
 
-:global(.dark) .template-passport {
+html.dark .template-passport {
   --passport-paper: #d8cbaa;
   filter: brightness(.9);
 }

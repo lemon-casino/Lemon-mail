@@ -303,3 +303,142 @@
     display: none;
   }
 }
+
+/* ── Light state: paper glass（白纸玻璃，与后台浅色皮肤同一材质语言）
+   深色态仍是上面写死的招牌形态；这里只在非 dark 时翻转材质与文字色，
+   强调色（按钮渐变/聚焦环/orb）继续吃 colorTheme 变量。 ── */
+html:not(.dark) .template-glassmorphism {
+  background: #f4f5f7;
+
+  .glass-bg {
+    background:
+      radial-gradient(circle at 78% 18%, color-mix(in srgb, var(--xi-orb-bg-top) 40%, transparent), transparent 32%),
+      radial-gradient(circle at 12% 80%, color-mix(in srgb, var(--xi-orb-bg-bottom) 40%, transparent), transparent 34%),
+      linear-gradient(160deg, #f7f8fa, #eef0f4 55%, #e9edf2);
+  }
+
+  .glass-orb {
+    filter: blur(48px);
+    opacity: .8;
+  }
+
+  .card-wrapper {
+    border-color: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.62);
+    box-shadow:
+      0 40px 90px rgba(30, 40, 60, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+
+  .glass-window-bar {
+    color: rgba(0, 0, 0, 0.45);
+    background: rgba(255, 255, 255, 0.35);
+    border-bottom-color: rgba(0, 0, 0, 0.07);
+  }
+
+  .logo-icon {
+    border-color: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.045);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .app-name,
+  .card-heading h2 {
+    color: #1a1d24;
+  }
+
+  .card-heading p {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .field label {
+    color: rgba(0, 0, 0, 0.65);
+  }
+
+  .tab-bar {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+
+  .tab {
+    color: rgba(0, 0, 0, 0.45);
+
+    &.active {
+      color: #1a1d24;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  .input-main.standalone,
+  .input-group {
+    border-color: rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.035);
+
+    &:focus-within {
+      background: rgba(255, 255, 255, 0.65);
+    }
+  }
+
+  input {
+    color: #1a1d24;
+
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.32);
+    }
+  }
+
+  .input-icon,
+  .toggle-pwd {
+    color: rgba(0, 0, 0, 0.4);
+  }
+
+  .input-suffix {
+    color: rgba(0, 0, 0, 0.6);
+    border-left-color: rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      color: #1a1d24;
+      background: rgba(0, 0, 0, 0.06);
+    }
+  }
+
+  .divider {
+    color: rgba(0, 0, 0, 0.35);
+
+    &::before,
+    &::after {
+      background: rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .social-btn {
+    color: #1a1d24;
+    border-color: rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.035);
+
+    &:hover {
+      border-color: rgba(0, 0, 0, 0.22);
+      background: rgba(0, 0, 0, 0.06);
+    }
+  }
+
+  .page-footer a {
+    color: rgba(0, 0, 0, 0.4);
+  }
+}
+
+html:not(.dark) .glass-float {
+  color: rgba(0, 0, 0, 0.62);
+  border-color: rgba(0, 0, 0, 0.09);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 12px 32px rgba(30, 40, 60, 0.12);
+}
+
+html:not(.dark) .glass-window-dots span {
+  background: rgba(0, 0, 0, 0.14);
+
+  &:first-child {
+    background: var(--el-color-primary);
+  }
+}

@@ -289,7 +289,7 @@
   font: italic 12px/1.4 Georgia, 'Times New Roman', serif;
 }
 
-:global(.dark) .template-envelope {
+html.dark .template-envelope {
   filter: brightness(.78) saturate(.85);
 }
 

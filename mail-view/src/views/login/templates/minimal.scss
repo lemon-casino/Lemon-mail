@@ -197,7 +197,7 @@
   pointer-events: none;
 }
 
-:global(.dark) .template-minimal {
+html.dark .template-minimal {
   background: #101313;
 
   .card-heading h2,

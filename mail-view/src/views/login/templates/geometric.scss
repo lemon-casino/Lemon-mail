@@ -289,7 +289,7 @@
 }
 
 /* Dark mode */
-:global(.dark) .template-geometric {
+html.dark .template-geometric {
   background: #1a1a1a;
 
   .geo-grid {

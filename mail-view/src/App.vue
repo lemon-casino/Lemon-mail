@@ -7,12 +7,18 @@
 import { useI18n } from "vue-i18n";
 import { watch } from "vue";
 import {useSettingStore} from "@/store/setting.js";
+import {useUiStore} from "@/store/ui.js";
+import { applyBootDark } from "@/utils/theme-utils.js";
 const settingStore = useSettingStore()
+const uiStore = useUiStore()
 import zhCn from 'element-plus/es/locale/lang/zh-cn';
 import('@/icons/index.js')
 const { locale } = useI18n()
 locale.value = settingStore.lang
 watch(() => settingStore.lang, () => locale.value = settingStore.lang)
+
+// Restore persisted day/night state so the login page receives the same state
+applyBootDark()
 
 // Apply color theme to <html> data attribute so CSS variables cascade
 function applyTheme(theme) {

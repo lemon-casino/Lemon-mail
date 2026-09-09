@@ -1,5 +1,10 @@
 <template>
   <div :class="['login-page', 'template-' + loginTemplate]" v-loading="oauthLoading" element-loading-text="登录中...">
+    <!-- Day/night toggle: keeps the login page in the same theme state as the app -->
+    <button class="login-dark-toggle" type="button" @click="openDark($event)"
+            :aria-label="uiStore.dark ? 'Light mode' : 'Dark mode'">
+      <Icon :icon="uiStore.dark ? 'mingcute:sun-line' : 'mingcute:moon-line'" width="17" height="17"/>
+    </button>
     <!-- Background decoration (gradient template only) -->
     <div class="bg-layer">
       <div class="bg-orb bg-orb-1"></div>
@@ -378,6 +383,7 @@ import {useAccountStore} from "@/store/account.js";
 import {useUserStore} from "@/store/user.js";
 import {useUiStore} from "@/store/ui.js";
 import {Icon} from "@iconify/vue";
+import {openDark} from "@/utils/theme-utils.js";
 import {loginUserInfo} from "@/request/my.js";
 import {permsToRouter} from "@/perm/perm.js";
 import {useI18n} from "vue-i18n";
@@ -423,7 +429,7 @@ const registerForm = reactive({ email: '', password: '', confirmPassword: '', co
 const domainList = settingStore.domainList;
 const hasDomains = computed(() => domainList && domainList.length > 0);
 const suffixPopperClass = computed(() =>
-  ['glassmorphism', 'aurora', 'terminal'].includes(settingStore.settings?.loginTemplate)
+  uiStore.dark && ['glassmorphism', 'aurora', 'terminal'].includes(settingStore.settings?.loginTemplate)
     ? 'xi-dark-login-dropdown'
     : ''
 );
@@ -636,7 +642,7 @@ function submitRegister() {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-:global(.dark) .login-page {
+html.dark .login-page {
   background:
     radial-gradient(ellipse 80% 60% at 20% 0%, rgba(61,139,132,0.14) 0%, transparent 60%),
     radial-gradient(ellipse 60% 50% at 80% 100%, rgba(90,158,150,0.10) 0%, transparent 60%),
@@ -757,7 +763,7 @@ function submitRegister() {
   }
 }
 
-:global(.dark) .auth-card {
+html.dark .auth-card {
   background: rgba(18, 22, 26, 0.85);
   backdrop-filter: blur(24px) saturate(150%);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
@@ -1177,6 +1183,40 @@ function submitRegister() {
 :deep(.el-input-group__append) {
   padding: 0 8px;
   background: var(--el-bg-color);
+}
+
+/* ── Day/night toggle: shared entrance for the login page ── */
+.login-dark-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: background 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.82);
+  }
+}
+
+html.dark .login-dark-toggle {
+  color: rgba(255, 255, 255, 0.75);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
 }
 
 /* ── Login page templates — each in its own file ──
