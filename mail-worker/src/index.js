@@ -51,7 +51,7 @@ export default {
 		 }
 
 		if (env.assets) return await serveAssetWithSiteTitle(req, env);
-		return new Response('Xi-Mail API is running. Frontend is deployed separately.', {
+		return new Response('Lemon-mail API is running. Frontend is deployed separately.', {
 			status: 200, headers: { 'Content-Type': 'text/plain' }
 		});
 	},
