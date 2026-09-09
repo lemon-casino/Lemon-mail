@@ -1205,7 +1205,9 @@ html.dark .auth-card {
   transition: background 0.2s ease, color 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.82);
+    color: var(--el-color-primary);
+    border-color: color-mix(in srgb, var(--el-color-primary) 32%, transparent);
+    background: color-mix(in srgb, var(--el-color-primary) 12%, transparent);
   }
 }
 
@@ -1215,7 +1217,9 @@ html.dark .login-dark-toggle {
   background: rgba(255, 255, 255, 0.08);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.15);
+    color: var(--el-color-primary-light-3);
+    border-color: color-mix(in srgb, var(--el-color-primary) 38%, transparent);
+    background: color-mix(in srgb, var(--el-color-primary) 20%, transparent);
   }
 }
 
