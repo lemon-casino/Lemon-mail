@@ -23,7 +23,8 @@ async function serveAssetWithSiteTitle(req, env) {
 			html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${safeTitle}</title>`);
 		}
 		if (icon) {
-			html = html.replace(/(<link[^>]*rel="icon"[^>]*href=")[^"]*(")/i, `$1${icon}$2`);
+			const iconUrl = icon.startsWith('http') ? icon : '/' + icon.replace(/^\//, '');
+			html = html.replace(/(<link[^>]*rel="icon"[^>]*href=")[^"]*(")/i, `$1${iconUrl}$2`);
 		}
 		const headers = new Headers(resp.headers);
 		headers.delete('content-length');
