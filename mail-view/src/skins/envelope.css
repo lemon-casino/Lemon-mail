@@ -1,0 +1,111 @@
+/* ══════════════════════════════════════════════════════════════════════
+   App Skin: Envelope / 拆信（与登录模板 envelope 联动）
+   ──────────────────────────────────────────────────────────────────────
+   牛皮纸信件语言：暖牛皮底、米白信纸面板、棕墨发丝线、
+   虚线邮戳式边框、暖色阴影。深色态：暗褐纸底 + 暖调面板。
+   ══════════════════════════════════════════════════════════════════════ */
+
+html:not(.dark)[data-login-template="envelope"]:not(:has(.login-page)) {
+	--el-bg-color: #f3eedf;
+	--el-bg-color-page: #d8d0bd;
+	--el-bg-color-overlay: #f6f2e6;
+	--el-border-color: rgba(73, 57, 35, 0.35) !important;
+	--el-border-color-lighter: rgba(73, 57, 35, 0.18);
+	--el-border-color-light: rgba(73, 57, 35, 0.24);
+	--aside-backgound: #eae3d0;
+}
+
+html:not(.dark)[data-login-template="envelope"]:not(:has(.login-page)) .layout {
+	background: #d8d0bd;
+	background-image:
+		radial-gradient(ellipse 65% 50% at 80% 0%, rgba(255, 250, 235, 0.5), transparent 60%),
+		linear-gradient(175deg, #ddd5c2, #d3cab5);
+}
+
+html:not(.dark)[data-login-template="envelope"]:not(:has(.login-page)) .main-area,
+html:not(.dark)[data-login-template="envelope"]:not(:has(.login-page)) .main-view {
+	background: transparent;
+	background-image: none;
+}
+
+html:not(.dark)[data-login-template="envelope"]:not(:has(.login-page)) .top-bar {
+	background: rgba(243, 238, 223, 0.85);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+	border-bottom-color: rgba(73, 57, 35, 0.18);
+}
+
+html:not(.dark)[data-login-template="envelope"]:not(:has(.login-page)) .aside {
+	background: transparent;
+	border-right-color: rgba(73, 57, 35, 0.18);
+}
+
+html:not(.dark)[data-login-template="envelope"]:not(:has(.login-page)) .lm-island .main-area {
+	background: #f3eedf;
+	border: 1px solid rgba(73, 57, 35, 0.24);
+	border-radius: 10px;
+	box-shadow: 0 18px 44px rgba(58, 45, 27, 0.18);
+}
+
+html:not(.dark)[data-login-template="envelope"]:not(:has(.login-page)) .island-rail {
+	background: #f3eedf;
+	border: 1px dashed rgba(73, 57, 35, 0.4);
+	border-radius: 10px;
+	box-shadow: 0 10px 26px rgba(58, 45, 27, 0.16);
+}
+
+html:not(.dark)[data-login-template="envelope"]:not(:has(.login-page)) .settings-card {
+	background: #f6f2e6;
+	border: 1px solid rgba(73, 57, 35, 0.2);
+	border-radius: 8px;
+	box-shadow: 0 8px 22px rgba(63, 49, 30, 0.1);
+}
+
+html:not(.dark)[data-login-template="envelope"]:not(:has(.login-page)) .el-dialog,
+html:not(.dark)[data-login-template="envelope"]:not(:has(.login-page)) .el-message-box {
+	background: #f6f2e6;
+	border: 1px dashed rgba(73, 57, 35, 0.38);
+	border-radius: 8px;
+	box-shadow: 0 20px 50px rgba(58, 45, 27, 0.22);
+}
+
+/* 深色：暗褐纸 */
+html.dark[data-login-template="envelope"]:not(:has(.login-page)) {
+	--el-bg-color: #221d15;
+	--el-bg-color-page: #1a1610;
+	--el-bg-color-overlay: #292219;
+	--el-border-color: rgba(186, 158, 112, 0.4) !important;
+	--el-border-color-lighter: rgba(186, 158, 112, 0.18);
+	--el-border-color-light: rgba(186, 158, 112, 0.26);
+	--aside-backgound: #1e1913;
+}
+
+html.dark[data-login-template="envelope"]:not(:has(.login-page)) .layout {
+	background: #1a1610;
+	background-image:
+		radial-gradient(ellipse 65% 50% at 80% 0%, rgba(120, 96, 58, 0.16), transparent 60%),
+		linear-gradient(175deg, #1c1812, #17130e);
+}
+
+html.dark[data-login-template="envelope"]:not(:has(.login-page)) .main-area,
+html.dark[data-login-template="envelope"]:not(:has(.login-page)) .main-view {
+	background: transparent;
+	background-image: none;
+}
+
+html.dark[data-login-template="envelope"]:not(:has(.login-page)) .top-bar {
+	background: rgba(34, 29, 21, 0.85);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}
+
+html.dark[data-login-template="envelope"]:not(:has(.login-page)) .aside {
+	background: transparent;
+}
+
+html.dark[data-login-template="envelope"]:not(:has(.login-page)) .settings-card,
+html.dark[data-login-template="envelope"]:not(:has(.login-page)) .lm-island .main-area {
+	background: #262019;
+	border: 1px solid rgba(186, 158, 112, 0.22);
+	box-shadow: none;
+}

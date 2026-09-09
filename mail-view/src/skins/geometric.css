@@ -1,0 +1,122 @@
+/* ══════════════════════════════════════════════════════════════════════
+   App Skin: Geometric / 几何（与登录模板 geometric 联动）
+   ──────────────────────────────────────────────────────────────────────
+   新粗野主义：粗黑描边、硬偏移阴影（无模糊无发光）、大圆角、
+   白纸底。深色态反转为亮边+纯黑硬影。
+   ══════════════════════════════════════════════════════════════════════ */
+
+html:not(.dark)[data-login-template="geometric"]:not(:has(.login-page)) {
+	--el-bg-color: #faf9f7;
+	--el-bg-color-page: #f1f0ed;
+	--el-bg-color-overlay: #ffffff;
+	--el-border-color: #1a1a1a !important;
+	--el-border-color-lighter: #d9d7d2;
+	--el-border-color-light: #c9c7c1;
+	--el-border-radius-base: 8px;
+}
+
+html:not(.dark)[data-login-template="geometric"]:not(:has(.login-page)) .layout {
+	background: #faf9f7;
+	background-image:
+		linear-gradient(rgba(26, 26, 26, 0.045) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(26, 26, 26, 0.045) 1px, transparent 1px);
+	background-size: 44px 44px;
+}
+
+html:not(.dark)[data-login-template="geometric"]:not(:has(.login-page)) .main-area,
+html:not(.dark)[data-login-template="geometric"]:not(:has(.login-page)) .main-view {
+	background: transparent;
+	background-image: none;
+}
+
+html:not(.dark)[data-login-template="geometric"]:not(:has(.login-page)) .top-bar,
+html:not(.dark)[data-login-template="geometric"]:not(:has(.login-page)) .aside {
+	background: transparent;
+}
+
+html:not(.dark)[data-login-template="geometric"]:not(:has(.login-page)) .lm-island .main-area {
+	background: #ffffff;
+	border: 2px solid #1a1a1a;
+	border-radius: 18px;
+	box-shadow: 8px 8px 0 0 #1a1a1a;
+}
+
+html:not(.dark)[data-login-template="geometric"]:not(:has(.login-page)) .island-rail {
+	background: #ffffff;
+	border: 2px solid #1a1a1a;
+	border-radius: 14px;
+	box-shadow: 5px 5px 0 0 #1a1a1a;
+}
+
+html:not(.dark)[data-login-template="geometric"]:not(:has(.login-page)) .settings-card {
+	background: #ffffff;
+	border: 2px solid #1a1a1a;
+	border-radius: 14px;
+	box-shadow: 6px 6px 0 0 #1a1a1a;
+}
+
+html:not(.dark)[data-login-template="geometric"]:not(:has(.login-page)) .el-dialog,
+html:not(.dark)[data-login-template="geometric"]:not(:has(.login-page)) .el-message-box {
+	background: #ffffff;
+	border: 2px solid #1a1a1a;
+	border-radius: 16px;
+	box-shadow: 10px 10px 0 0 #1a1a1a;
+}
+
+/* 深色：墨黑底 + 亮边 + 纯黑硬影 */
+html.dark[data-login-template="geometric"]:not(:has(.login-page)) {
+	--el-bg-color: #191919;
+	--el-bg-color-page: #121212;
+	--el-bg-color-overlay: #202020;
+	--el-border-color: #e9e7e2 !important;
+	--el-border-color-lighter: #3a3a38;
+	--el-border-color-light: #4a4a47;
+}
+
+html.dark[data-login-template="geometric"]:not(:has(.login-page)) .layout {
+	background: #191919;
+	background-image:
+		linear-gradient(rgba(233, 231, 226, 0.05) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(233, 231, 226, 0.05) 1px, transparent 1px);
+	background-size: 44px 44px;
+}
+
+html.dark[data-login-template="geometric"]:not(:has(.login-page)) .main-area,
+html.dark[data-login-template="geometric"]:not(:has(.login-page)) .main-view {
+	background: transparent;
+	background-image: none;
+}
+
+html.dark[data-login-template="geometric"]:not(:has(.login-page)) .top-bar,
+html.dark[data-login-template="geometric"]:not(:has(.login-page)) .aside {
+	background: transparent;
+}
+
+html.dark[data-login-template="geometric"]:not(:has(.login-page)) .lm-island .main-area {
+	background: #202020;
+	border: 2px solid #e9e7e2;
+	border-radius: 18px;
+	box-shadow: 8px 8px 0 0 #000;
+}
+
+html.dark[data-login-template="geometric"]:not(:has(.login-page)) .island-rail {
+	background: #202020;
+	border: 2px solid #e9e7e2;
+	border-radius: 14px;
+	box-shadow: 5px 5px 0 0 #000;
+}
+
+html.dark[data-login-template="geometric"]:not(:has(.login-page)) .settings-card {
+	background: #202020;
+	border: 2px solid #e9e7e2;
+	border-radius: 14px;
+	box-shadow: 6px 6px 0 0 #000;
+}
+
+html.dark[data-login-template="geometric"]:not(:has(.login-page)) .el-dialog,
+html.dark[data-login-template="geometric"]:not(:has(.login-page)) .el-message-box {
+	background: #202020;
+	border: 2px solid #e9e7e2;
+	border-radius: 16px;
+	box-shadow: 10px 10px 0 0 #000;
+}

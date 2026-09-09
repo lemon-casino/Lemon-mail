@@ -323,3 +323,54 @@
     }
   }
 }
+
+/* ── 浅色态：日间水墨（海报侧转纸面，表单侧保持宣纸） ── */
+html:not(.dark) .template-gradient {
+  background: #f3f1ea;
+
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(23, 27, 27, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(23, 27, 27, 0.05) 1px, transparent 1px);
+  }
+
+  .card-wrapper {
+    background: #faf8f2;
+    border-left-color: rgba(23, 27, 27, 0.08);
+  }
+}
+
+html:not(.dark) .ink-poster {
+  color: #27302e;
+}
+
+html:not(.dark) .ink-poster-top {
+  color: rgba(23, 27, 27, 0.5);
+}
+
+html:not(.dark) .ink-index {
+  color: rgba(23, 27, 27, 0.85);
+}
+
+html:not(.dark) .ink-rule {
+  background: rgba(23, 27, 27, 0.25);
+}
+
+html:not(.dark) .ink-poster-copy {
+  .ink-eyebrow {
+    color: var(--el-color-primary);
+  }
+
+  h2 {
+    color: #1d2625;
+  }
+
+  p {
+    color: rgba(23, 27, 27, 0.55);
+  }
+}
+
+html:not(.dark) .ink-stamp {
+  color: #27302e;
+  border-color: rgba(23, 27, 27, 0.3);
+}

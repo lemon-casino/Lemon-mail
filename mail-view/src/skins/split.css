@@ -1,0 +1,62 @@
+/* ══════════════════════════════════════════════════════════════════════
+   App Skin: Split / 分栏（与登录模板 split 联动）
+   ──────────────────────────────────────────────────────────────────────
+   干净利落的对称语言：白面板、10px 圆角、主题色渐变点睛
+   （登录页左侧品牌栏用的就是 --xi-gradient）。
+   ══════════════════════════════════════════════════════════════════════ */
+
+html:not(.dark)[data-login-template="split"]:not(:has(.login-page)) .layout {
+	background: #f7f8fa;
+}
+
+html:not(.dark)[data-login-template="split"]:not(:has(.login-page)) .main-area,
+html:not(.dark)[data-login-template="split"]:not(:has(.login-page)) .main-view {
+	background: transparent;
+	background-image: none;
+}
+
+html:not(.dark)[data-login-template="split"]:not(:has(.login-page)) .top-bar,
+html:not(.dark)[data-login-template="split"]:not(:has(.login-page)) .hnav {
+	background: rgba(255, 255, 255, 0.88);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+}
+
+html:not(.dark)[data-login-template="split"]:not(:has(.login-page)) .aside {
+	background: transparent;
+}
+
+/* 导航选中项：登录页品牌栏同款主题渐变 */
+html:not(.dark)[data-login-template="split"]:not(:has(.login-page)) .aside .nav-item.active,
+html:not(.dark)[data-login-template="split"]:not(:has(.login-page)) .island-item.active {
+	background: var(--xi-gradient);
+}
+
+html:not(.dark)[data-login-template="split"]:not(:has(.login-page)) .aside .nav-item.active .nav-label,
+html:not(.dark)[data-login-template="split"]:not(:has(.login-page)) .aside .nav-item.active {
+	color: #fff;
+}
+
+html.dark[data-login-template="split"]:not(:has(.login-page)) {
+	--el-bg-color: #0f1318;
+	--el-bg-color-page: #0a0d11;
+}
+
+html.dark[data-login-template="split"]:not(:has(.login-page)) .layout {
+	background: #0f1318;
+	background-image:
+		radial-gradient(ellipse 60% 45% at 0% 0%, var(--xi-orb-bg-top), transparent 60%),
+		linear-gradient(180deg, #0f1318, #0b0e12);
+}
+
+html.dark[data-login-template="split"]:not(:has(.login-page)) .main-area,
+html.dark[data-login-template="split"]:not(:has(.login-page)) .main-view {
+	background: transparent;
+	background-image: none;
+}
+
+html.dark[data-login-template="split"]:not(:has(.login-page)) .aside .nav-item.active,
+html.dark[data-login-template="split"]:not(:has(.login-page)) .island-item.active {
+	background: var(--xi-gradient);
+	color: #fff;
+}

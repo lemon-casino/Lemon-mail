@@ -1,0 +1,50 @@
+/* ══════════════════════════════════════════════════════════════════════
+   App Skin Base（所有模板皮肤共享的基座）
+   ──────────────────────────────────────────────────────────────────────
+   与具体模板材质无关的公共层：
+   1. 悬停/选中态一律染主题色（color-mix 实时调和，跟随 colorTheme）
+   2. 邮件悬停、账户选中等公共变量的主题色化
+   各模板的材质（底色/面板/边框/阴影）在各自的 skins/<template>.css 里。
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* 登录后（登录页卸载）任意模板下生效 */
+html[data-login-template]:not(:has(.login-page)) {
+	--email-hover-background: color-mix(in srgb, var(--el-color-primary) 10%, var(--el-bg-color));
+	--choose-account-background: color-mix(in srgb, var(--el-color-primary) 13%, var(--el-bg-color));
+}
+
+/* ── 悬停态：一律染主题色，不用中性灰 ── */
+html[data-login-template]:not(:has(.login-page)) .aside .nav-item:hover,
+html[data-login-template]:not(:has(.login-page)) .hnav .nav-item:hover,
+html[data-login-template]:not(:has(.login-page)) .island-item:hover,
+html[data-login-template]:not(:has(.login-page)) .island-logo:hover {
+	background: color-mix(in srgb, var(--el-color-primary) 12%, transparent);
+}
+
+html[data-login-template]:not(:has(.login-page)) .el-dropdown-menu__item:not(.is-disabled):hover,
+html[data-login-template]:not(:has(.login-page)) .el-select-dropdown__item:not(.is-disabled):hover,
+html[data-login-template]:not(:has(.login-page)) .el-select-dropdown__item.hover:not(.is-disabled),
+html[data-login-template]:not(:has(.login-page)) .el-autocomplete-suggestion li:hover {
+	background: color-mix(in srgb, var(--el-color-primary) 12%, transparent);
+	color: var(--el-color-primary);
+}
+
+html[data-login-template]:not(:has(.login-page)) .el-pagination button:hover:not(:disabled),
+html[data-login-template]:not(:has(.login-page)) .el-pagination .el-pager li:hover {
+	background: color-mix(in srgb, var(--el-color-primary) 12%, transparent);
+	color: var(--el-color-primary);
+}
+
+/* 深色态下轻微加浓（透明底上 12% 在暗色里偏弱） */
+html.dark[data-login-template]:not(:has(.login-page)) .aside .nav-item:hover,
+html.dark[data-login-template]:not(:has(.login-page)) .hnav .nav-item:hover,
+html.dark[data-login-template]:not(:has(.login-page)) .island-item:hover,
+html.dark[data-login-template]:not(:has(.login-page)) .island-logo:hover,
+html.dark[data-login-template]:not(:has(.login-page)) .el-dropdown-menu__item:not(.is-disabled):hover,
+html.dark[data-login-template]:not(:has(.login-page)) .el-select-dropdown__item:not(.is-disabled):hover,
+html.dark[data-login-template]:not(:has(.login-page)) .el-select-dropdown__item.hover:not(.is-disabled),
+html.dark[data-login-template]:not(:has(.login-page)) .el-autocomplete-suggestion li:hover,
+html.dark[data-login-template]:not(:has(.login-page)) .el-pagination button:hover:not(:disabled),
+html.dark[data-login-template]:not(:has(.login-page)) .el-pagination .el-pager li:hover {
+	background: color-mix(in srgb, var(--el-color-primary) 18%, transparent);
+}

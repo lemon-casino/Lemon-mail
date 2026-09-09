@@ -1,0 +1,134 @@
+/* ══════════════════════════════════════════════════════════════════════
+   App Skin: Aurora / 极光（与登录模板 aurora 联动）
+   ──────────────────────────────────────────────────────────────────────
+   深空底 + 主题色极光晕；面板半透明深色玻璃，边框与光晕
+   均用 --xi-orb-card-border / --xi-orb-* 主题变量，随主题色变换。
+   浅色态：晨光极光（淡云底 + 柔光晕 + 白玻璃面板）。
+   ══════════════════════════════════════════════════════════════════════ */
+
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) {
+	--el-bg-color: #0a0e15;
+	--el-bg-color-page: #05070b;
+	--el-bg-color-overlay: rgba(12, 16, 26, 0.82);
+	--el-border-color: rgba(255, 255, 255, 0.12) !important;
+	--el-border-color-lighter: rgba(255, 255, 255, 0.06);
+	--aside-backgound: rgba(8, 11, 16, 0.82);
+	--loadding-background: rgba(5, 7, 11, 0.85);
+}
+
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .layout {
+	background: #0a0e15;
+	background-image:
+		radial-gradient(ellipse 60% 45% at 75% 8%, var(--xi-orb-bg-top), transparent 58%),
+		radial-gradient(ellipse 55% 45% at 10% 92%, var(--xi-orb-bg-bottom), transparent 58%),
+		radial-gradient(ellipse 40% 30% at 45% 45%, color-mix(in srgb, var(--xi-orb-3) 40%, transparent), transparent 70%),
+		linear-gradient(170deg, #05070b, #0b101c 55%, #05070b);
+}
+
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .main-area,
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .main-view {
+	background: transparent;
+	background-image: none;
+}
+
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .top-bar {
+	background: rgba(8, 11, 16, 0.6);
+	backdrop-filter: blur(18px) saturate(1.2);
+	-webkit-backdrop-filter: blur(18px) saturate(1.2);
+	border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .aside {
+	background: transparent;
+	backdrop-filter: blur(18px) saturate(1.2);
+	-webkit-backdrop-filter: blur(18px) saturate(1.2);
+	border-right-color: var(--xi-orb-card-border);
+}
+
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .lm-island .main-area {
+	background: rgba(10, 14, 22, 0.6);
+	backdrop-filter: blur(20px) saturate(1.25);
+	-webkit-backdrop-filter: blur(20px) saturate(1.25);
+	border-color: var(--xi-orb-card-border);
+	box-shadow: 0 0 30px color-mix(in srgb, var(--xi-orb-card-border) 60%, transparent), 0 14px 40px rgba(0, 0, 0, 0.45);
+}
+
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .lm-island .top-bar {
+	background: transparent;
+}
+
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .island-rail {
+	background: rgba(10, 14, 22, 0.66);
+	backdrop-filter: blur(22px) saturate(1.25);
+	-webkit-backdrop-filter: blur(22px) saturate(1.25);
+	border-color: var(--xi-orb-card-border);
+	box-shadow: 0 0 26px color-mix(in srgb, var(--xi-orb-card-border) 55%, transparent), 0 14px 38px rgba(0, 0, 0, 0.45);
+}
+
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .island-launcher {
+	background: rgba(10, 14, 22, 0.78);
+	backdrop-filter: blur(26px) saturate(1.25);
+	-webkit-backdrop-filter: blur(26px) saturate(1.25);
+	border-color: var(--xi-orb-card-border);
+}
+
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .settings-card {
+	background: rgba(255, 255, 255, 0.025);
+	border: 1px solid var(--xi-orb-card-border);
+	box-shadow: none;
+}
+
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .el-dialog,
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .el-message-box {
+	background: rgba(12, 16, 26, 0.78);
+	backdrop-filter: blur(28px) saturate(1.25);
+	-webkit-backdrop-filter: blur(28px) saturate(1.25);
+	border: 1px solid var(--xi-orb-card-border);
+}
+
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .el-popper.is-light,
+html.dark[data-login-template="aurora"]:not(:has(.login-page)) .el-popper.is-dark {
+	backdrop-filter: blur(22px) saturate(1.2);
+	-webkit-backdrop-filter: blur(22px) saturate(1.2);
+	border-color: var(--xi-orb-card-border);
+}
+
+/* 浅色：晨光极光 */
+html:not(.dark)[data-login-template="aurora"]:not(:has(.login-page)) {
+	--el-bg-color-overlay: rgba(255, 255, 255, 0.8);
+}
+
+html:not(.dark)[data-login-template="aurora"]:not(:has(.login-page)) .layout {
+	background: #eef1f7;
+	background-image:
+		radial-gradient(ellipse 60% 45% at 75% 8%, color-mix(in srgb, var(--xi-orb-bg-top) 40%, transparent), transparent 58%),
+		radial-gradient(ellipse 55% 45% at 10% 92%, color-mix(in srgb, var(--xi-orb-bg-bottom) 40%, transparent), transparent 58%),
+		linear-gradient(170deg, #f2f4f9, #e9edf5 55%, #eef1f7);
+}
+
+html:not(.dark)[data-login-template="aurora"]:not(:has(.login-page)) .main-area,
+html:not(.dark)[data-login-template="aurora"]:not(:has(.login-page)) .main-view {
+	background: transparent;
+	background-image: none;
+}
+
+html:not(.dark)[data-login-template="aurora"]:not(:has(.login-page)) .top-bar {
+	background: rgba(255, 255, 255, 0.66);
+	backdrop-filter: blur(18px) saturate(1.15);
+	-webkit-backdrop-filter: blur(18px) saturate(1.15);
+}
+
+html:not(.dark)[data-login-template="aurora"]:not(:has(.login-page)) .lm-island .main-area {
+	background: rgba(255, 255, 255, 0.68);
+	backdrop-filter: blur(20px) saturate(1.15);
+	-webkit-backdrop-filter: blur(20px) saturate(1.15);
+	border-color: color-mix(in srgb, var(--xi-orb-card-border) 55%, transparent);
+	box-shadow: 0 10px 30px rgba(30, 40, 60, 0.1);
+}
+
+html:not(.dark)[data-login-template="aurora"]:not(:has(.login-page)) .island-rail {
+	background: rgba(255, 255, 255, 0.66);
+	backdrop-filter: blur(22px) saturate(1.15);
+	-webkit-backdrop-filter: blur(22px) saturate(1.15);
+	border-color: color-mix(in srgb, var(--xi-orb-card-border) 55%, transparent);
+}

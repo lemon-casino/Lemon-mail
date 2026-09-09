@@ -235,10 +235,20 @@
 @import './themes/purple.css';
 
 /* ── App skins (template-driven atmosphere) ──
-   Each login template can bring a companion app skin so the whole
+   Each login template brings a companion app skin so the whole
    product reads as one theme. Lives in src/skins/<template>.css
+   base.css carries the template-independent shared layer (theme-tinted hovers).
    ── */
+@import './skins/base.css';
+@import './skins/gradient.css';
+@import './skins/minimal.css';
+@import './skins/split.css';
 @import './skins/glassmorphism.css';
+@import './skins/aurora.css';
+@import './skins/geometric.css';
+@import './skins/envelope.css';
+@import './skins/terminal.css';
+@import './skins/passport.css';
 
 .el-input {
   --el-input-text-color: var(--el-text-color-primary) !important;

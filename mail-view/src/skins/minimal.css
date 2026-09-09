@@ -1,0 +1,98 @@
+/* ══════════════════════════════════════════════════════════════════════
+   App Skin: Minimal / 简约（与登录模板 minimal 联动）
+   ──────────────────────────────────────────────────────────────────────
+   编辑部式的 flat 语言：暖白纸面、发丝线边框、零阴影、零模糊、
+   小圆角。深浅两态都保持"纸"的克制。
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* 浅色（本模板的主形态） */
+html:not(.dark)[data-login-template="minimal"]:not(:has(.login-page)) {
+	--el-bg-color: #fbfbf9;
+	--el-bg-color-page: #f4f4f1;
+	--el-bg-color-overlay: #ffffff;
+	--el-border-color-lighter: #e7e8e4;
+	--el-border-color-light: #dddfdc;
+	--xi-shadow-card: none;
+}
+
+html:not(.dark)[data-login-template="minimal"]:not(:has(.login-page)) .layout {
+	background: #fbfbf9;
+	background-image: linear-gradient(180deg, #fbfbf9, #f6f6f3);
+}
+
+html:not(.dark)[data-login-template="minimal"]:not(:has(.login-page)) .main-area,
+html:not(.dark)[data-login-template="minimal"]:not(:has(.login-page)) .main-view {
+	background: transparent;
+	background-image: none;
+}
+
+html:not(.dark)[data-login-template="minimal"]:not(:has(.login-page)) .top-bar {
+	background: rgba(251, 251, 249, 0.92);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}
+
+html:not(.dark)[data-login-template="minimal"]:not(:has(.login-page)) .aside {
+	background: transparent;
+}
+
+html:not(.dark)[data-login-template="minimal"]:not(:has(.login-page)) .lm-island .main-area,
+html:not(.dark)[data-login-template="minimal"]:not(:has(.login-page)) .island-rail {
+	background: #ffffff;
+	border: 1px solid #dddfdc;
+	box-shadow: none;
+}
+
+html:not(.dark)[data-login-template="minimal"]:not(:has(.login-page)) .settings-card,
+html:not(.dark)[data-login-template="minimal"]:not(:has(.login-page)) .el-dialog,
+html:not(.dark)[data-login-template="minimal"]:not(:has(.login-page)) .el-message-box {
+	background: #ffffff;
+	border: 1px solid #dddfdc;
+	box-shadow: none;
+}
+
+/* 深色：墨黑纸面，同样零阴影 */
+html.dark[data-login-template="minimal"]:not(:has(.login-page)) {
+	--el-bg-color: #121515;
+	--el-bg-color-page: #0d100f;
+	--el-bg-color-overlay: #171b1a;
+	--el-border-color: rgba(255, 255, 255, 0.12) !important;
+	--el-border-color-lighter: rgba(255, 255, 255, 0.07);
+	--el-border-color-light: rgba(255, 255, 255, 0.1);
+	--aside-backgound: #121515;
+}
+
+html.dark[data-login-template="minimal"]:not(:has(.login-page)) .layout {
+	background: #121515;
+}
+
+html.dark[data-login-template="minimal"]:not(:has(.login-page)) .main-area,
+html.dark[data-login-template="minimal"]:not(:has(.login-page)) .main-view {
+	background: transparent;
+	background-image: none;
+}
+
+html.dark[data-login-template="minimal"]:not(:has(.login-page)) .top-bar {
+	background: rgba(18, 21, 21, 0.92);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}
+
+html.dark[data-login-template="minimal"]:not(:has(.login-page)) .aside {
+	background: transparent;
+}
+
+html.dark[data-login-template="minimal"]:not(:has(.login-page)) .lm-island .main-area,
+html.dark[data-login-template="minimal"]:not(:has(.login-page)) .island-rail {
+	background: #171b1a;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	box-shadow: none;
+}
+
+html.dark[data-login-template="minimal"]:not(:has(.login-page)) .settings-card,
+html.dark[data-login-template="minimal"]:not(:has(.login-page)) .el-dialog,
+html.dark[data-login-template="minimal"]:not(:has(.login-page)) .el-message-box {
+	background: #171b1a;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	box-shadow: none;
+}

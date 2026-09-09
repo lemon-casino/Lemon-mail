@@ -1,0 +1,32 @@
+/* ══════════════════════════════════════════════════════════════════════
+   App Skin: Gradient / 水墨（与登录模板 gradient 联动）
+   ──────────────────────────────────────────────────────────────────────
+   水墨模板本身就是本应用的默认设计语言（宣纸+墨色+主题色晕），
+   后台默认外观已与之同源，皮肤只做两件事：
+   1. 深色态给环境底铺上与登录页同源的水墨晕染
+   2. 内容画布透出环境底
+   ══════════════════════════════════════════════════════════════════════ */
+
+html.dark[data-login-template="gradient"]:not(:has(.login-page)) {
+	--el-bg-color: #101414;
+	--el-bg-color-page: #0b0e0e;
+}
+
+html.dark[data-login-template="gradient"]:not(:has(.login-page)) .layout {
+	background: #101414;
+	background-image:
+		radial-gradient(ellipse 70% 55% at 18% 0%, var(--xi-orb-bg-top), transparent 62%),
+		radial-gradient(ellipse 55% 45% at 82% 100%, var(--xi-orb-bg-bottom), transparent 60%),
+		linear-gradient(175deg, #0c0f12, #101414 55%, #0c0f12);
+}
+
+html.dark[data-login-template="gradient"]:not(:has(.login-page)) .main-area {
+	background: transparent;
+	background-image: none;
+}
+
+html.dark[data-login-template="gradient"]:not(:has(.login-page)) .main-view {
+	background: transparent;
+}
+
+/* 浅色态：默认宣纸外观已与登录页同源，不做额外覆盖 */

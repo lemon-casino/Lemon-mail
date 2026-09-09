@@ -298,3 +298,70 @@
 @media (prefers-reduced-motion: reduce) {
   .terminal-cursor { animation: none; }
 }
+
+/* ── 浅色态：打印纸终端（日/夜切换跟随） ── */
+html:not(.dark) .template-terminal {
+  --terminal-ink: #1e4a28;
+  --terminal-dim: #64806a;
+  background: #e9efe8;
+
+  &::after {
+    opacity: 0.05;
+    background: repeating-linear-gradient(0deg, transparent 0 3px, #1e4a28 3px 4px);
+  }
+
+  .card-wrapper {
+    border-left-color: #a9c1ab;
+    background: #f4f8f3;
+  }
+
+  .terminal-window-bar {
+    color: #f4f8f3;
+    background: var(--terminal-ink);
+  }
+
+  .card-heading {
+    border-block-color: #b8ccba;
+  }
+
+  .tab.active {
+    color: #f4f8f3;
+  }
+
+  .input-main.standalone,
+  .input-group {
+    border-bottom-color: #a9c1ab;
+
+    &:focus-within {
+      border-color: var(--terminal-ink);
+      background: rgba(30, 74, 40, 0.05);
+    }
+  }
+
+  input {
+    &::placeholder {
+      color: #8fa895;
+    }
+  }
+
+  .input-suffix {
+    border-left-color: #a9c1ab;
+  }
+
+  .divider {
+    &::before,
+    &::after {
+      background: #b8ccba;
+    }
+  }
+
+  .social-btn {
+    border-color: #a9c1ab;
+  }
+}
+
+html:not(.dark) .terminal-aside {
+  &::before {
+    border-bottom-color: #b8ccba;
+  }
+}

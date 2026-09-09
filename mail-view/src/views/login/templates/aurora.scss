@@ -317,3 +317,140 @@
     }
   }
 }
+
+/* ── 浅色态：晨光极光（日/夜切换跟随） ── */
+html:not(.dark) .template-aurora {
+  background: #eef2f7;
+
+  .card-wrapper {
+    background: rgba(250, 251, 253, 0.97);
+    border-right: 1px solid rgba(23, 51, 74, 0.08);
+  }
+
+  .app-name,
+  .card-heading h2 {
+    color: #1a2430;
+  }
+
+  .card-heading p {
+    color: rgba(26, 36, 48, 0.5);
+  }
+
+  .tab {
+    color: rgba(26, 36, 48, 0.4);
+
+    &.active {
+      color: var(--el-color-primary);
+    }
+  }
+
+  .field label {
+    color: rgba(26, 36, 48, 0.55);
+  }
+
+  .input-main.standalone,
+  .input-group {
+    border-color: rgba(23, 51, 74, 0.14);
+    background: rgba(23, 51, 74, 0.035);
+
+    &:focus-within {
+      background: #fff;
+    }
+  }
+
+  input {
+    color: #1a2430;
+
+    &::placeholder {
+      color: rgba(26, 36, 48, 0.3);
+    }
+  }
+
+  .input-icon,
+  .toggle-pwd {
+    color: rgba(26, 36, 48, 0.4);
+  }
+
+  .input-suffix {
+    color: rgba(26, 36, 48, 0.55);
+    border-left-color: rgba(23, 51, 74, 0.1);
+
+    &:hover {
+      color: #1a2430;
+      background: rgba(23, 51, 74, 0.06);
+    }
+  }
+
+  .divider {
+    color: rgba(26, 36, 48, 0.3);
+
+    &::before,
+    &::after {
+      background: rgba(23, 51, 74, 0.12);
+    }
+  }
+
+  .social-btn {
+    color: #1a2430;
+    border-color: rgba(23, 51, 74, 0.14);
+    background: rgba(23, 51, 74, 0.035);
+  }
+
+  .page-footer a {
+    color: rgba(26, 36, 48, 0.4);
+  }
+
+  @media (max-width: 900px) {
+    .card-wrapper {
+      background:
+        radial-gradient(circle at 90% 0, color-mix(in srgb, var(--xi-orb-bg-top) 40%, transparent), transparent 38%),
+        #f2f5f9;
+    }
+  }
+}
+
+html:not(.dark) .aurora-panel {
+  background:
+    linear-gradient(180deg, transparent 52%, rgba(23, 51, 74, 0.14) 100%),
+    radial-gradient(ellipse at 50% 115%, color-mix(in srgb, var(--xi-orb-bg-bottom) 55%, transparent), transparent 45%),
+    #dfe7f1;
+
+  &::after {
+    background: #cfdae8;
+    box-shadow: 0 -1px 40px rgba(23, 51, 74, 0.18);
+  }
+}
+
+html:not(.dark) .aurora-wave {
+  mix-blend-mode: normal;
+  opacity: 0.32;
+}
+
+html:not(.dark) .aurora-stars {
+  opacity: 0;
+}
+
+html:not(.dark) .aurora-brand {
+  color: #1a2430;
+}
+
+html:not(.dark) .aurora-logo {
+  color: #1a2430;
+  border-color: rgba(23, 51, 74, 0.16);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--xi-orb-card-border) 45%, transparent);
+}
+
+html:not(.dark) .aurora-title {
+  color: #1a2430;
+}
+
+html:not(.dark) .aurora-desc {
+  color: rgba(26, 36, 48, 0.55);
+}
+
+html:not(.dark) .aurora-feature {
+  color: rgba(26, 36, 48, 0.65);
+  border-color: rgba(23, 51, 74, 0.12);
+  background: rgba(255, 255, 255, 0.5);
+}

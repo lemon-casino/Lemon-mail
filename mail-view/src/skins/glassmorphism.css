@@ -27,8 +27,6 @@
 	/* 与登录页玻璃卡片同源的半透明面板；悬停/选中一律染主题色而非中性灰 */
 	--aside-backgound: rgba(11, 14, 23, 0.60);
 	--loadding-background: rgba(8, 10, 17, 0.85);
-	--email-hover-background: color-mix(in srgb, var(--el-color-primary) 14%, transparent);
-	--choose-account-background: color-mix(in srgb, var(--el-color-primary) 17%, transparent);
 	--base-fill: rgba(255, 255, 255, 0.05);
 	--extra-light-fill: rgba(255, 255, 255, 0.03);
 	--light-ill: rgba(255, 255, 255, 0.05);
@@ -148,33 +146,9 @@ html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-popper
 	border-color: rgba(255, 255, 255, 0.08);
 }
 
-/* ── 悬停态：一律染主题色，不用中性灰 ── */
-html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .aside .nav-item:hover,
-html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .hnav .nav-item:hover,
-html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .island-item:hover,
-html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .island-logo:hover {
-	background: color-mix(in srgb, var(--el-color-primary) 16%, transparent);
-}
-
-html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-dropdown-menu__item:not(.is-disabled):hover,
-html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-select-dropdown__item:not(.is-disabled):hover,
-html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-select-dropdown__item.hover:not(.is-disabled),
-html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-autocomplete-suggestion li:hover {
-	background: color-mix(in srgb, var(--el-color-primary) 16%, transparent);
-	color: var(--el-color-primary-light-3);
-}
-
-html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-pagination button:hover:not(:disabled),
-html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-pagination .el-pager li:hover {
-	background: color-mix(in srgb, var(--el-color-primary) 16%, transparent);
-	color: var(--el-color-primary-light-3);
-}
-
 /* 浅色纸玻璃（尊重日/夜切换）──────────────────────────────────────── */
 html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) {
 	--el-bg-color-overlay: rgba(255, 255, 255, 0.78);
-	--email-hover-background: color-mix(in srgb, var(--el-color-primary) 9%, #ffffff);
-	--choose-account-background: color-mix(in srgb, var(--el-color-primary) 12%, #ffffff);
 }
 
 html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .layout {
@@ -250,26 +224,4 @@ html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-
 	backdrop-filter: blur(22px) saturate(1.1);
 	-webkit-backdrop-filter: blur(22px) saturate(1.1);
 	border-color: rgba(255, 255, 255, 0.7);
-}
-
-/* ── 悬停态：一律染主题色，不用中性灰 ── */
-html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .aside .nav-item:hover,
-html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .hnav .nav-item:hover,
-html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .island-item:hover,
-html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .island-logo:hover {
-	background: color-mix(in srgb, var(--el-color-primary) 10%, transparent);
-}
-
-html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-dropdown-menu__item:not(.is-disabled):hover,
-html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-select-dropdown__item:not(.is-disabled):hover,
-html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-select-dropdown__item.hover:not(.is-disabled),
-html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-autocomplete-suggestion li:hover {
-	background: color-mix(in srgb, var(--el-color-primary) 10%, transparent);
-	color: var(--el-color-primary);
-}
-
-html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-pagination button:hover:not(:disabled),
-html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-pagination .el-pager li:hover {
-	background: color-mix(in srgb, var(--el-color-primary) 10%, transparent);
-	color: var(--el-color-primary);
 }
