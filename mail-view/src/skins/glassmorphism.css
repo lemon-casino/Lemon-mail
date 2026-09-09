@@ -11,10 +11,10 @@
    ══════════════════════════════════════════════════════════════════════ */
 
 /* 深色玻璃（招牌形态）────────────────────────────────────────────── */
-html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) {
+	html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) {
 	--el-bg-color: #0b0e17;
 	--el-bg-color-page: #07090f;
-	--el-bg-color-overlay: #141930;
+	--el-bg-color-overlay: rgba(20, 25, 48, 0.80);
 	--el-border-color: rgba(255, 255, 255, 0.14) !important;
 	--el-border-color-extra-light: rgba(255, 255, 255, 0.05);
 	--el-border-color-lighter: rgba(255, 255, 255, 0.07);
@@ -92,8 +92,65 @@ html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .settings-
 	box-shadow: none;
 }
 
+/* ── 悬浮面全部玻璃化 ─────────────────────────────────────────────
+   内容画布透出环境底；island 导航、启动器、顶栏、下拉、弹窗、消息框
+   与登录页玻璃卡片同一材质（半透明 + backdrop-blur + 细亮边）。 ── */
+
+/* 内容画布：让环境底透出来，层次由卡片自己提供 */
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .main-view,
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .lm-island .main-area {
+	background: transparent;
+}
+
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .island-rail {
+	background: rgba(14, 17, 28, 0.55);
+	backdrop-filter: blur(22px) saturate(1.25);
+	-webkit-backdrop-filter: blur(22px) saturate(1.25);
+	border-color: rgba(255, 255, 255, 0.08);
+	box-shadow: 0 14px 38px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .island-launcher {
+	background: rgba(14, 17, 28, 0.72);
+	backdrop-filter: blur(26px) saturate(1.25);
+	-webkit-backdrop-filter: blur(26px) saturate(1.25);
+	border-color: rgba(255, 255, 255, 0.08);
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .launcher-backdrop {
+	backdrop-filter: blur(8px);
+	background: rgba(5, 7, 12, 0.35);
+}
+
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .hnav {
+	background: rgba(11, 14, 23, 0.55);
+	backdrop-filter: blur(18px) saturate(1.2);
+	-webkit-backdrop-filter: blur(18px) saturate(1.2);
+	border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+/* 弹窗 / 消息框：登录卡片同款玻璃 */
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-dialog,
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-message-box {
+	background: rgba(17, 21, 38, 0.72);
+	backdrop-filter: blur(28px) saturate(1.25);
+	-webkit-backdrop-filter: blur(28px) saturate(1.25);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+}
+
+/* 下拉 / 气泡 / 提示等 popper 悬浮层 */
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-popper.is-light,
+html.dark[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-popper.is-dark {
+	backdrop-filter: blur(22px) saturate(1.2);
+	-webkit-backdrop-filter: blur(22px) saturate(1.2);
+	border-color: rgba(255, 255, 255, 0.08);
+}
+
 /* 浅色纸玻璃（尊重日/夜切换）──────────────────────────────────────── */
 html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) {
+	--el-bg-color-overlay: rgba(255, 255, 255, 0.78);
 	--email-hover-background: #eef3f2;
 }
 
@@ -126,4 +183,48 @@ html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .lm-
 
 html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .lm-island .top-bar {
 	background: transparent;
+}
+
+/* ── 悬浮面玻璃化（浅色） ── */
+
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .main-view {
+	background: transparent;
+}
+
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .island-rail {
+	background: rgba(255, 255, 255, 0.6);
+	backdrop-filter: blur(22px) saturate(1.15);
+	-webkit-backdrop-filter: blur(22px) saturate(1.15);
+	border-color: rgba(255, 255, 255, 0.7);
+	box-shadow: 0 14px 38px rgba(30, 40, 60, 0.14);
+}
+
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .island-launcher {
+	background: rgba(255, 255, 255, 0.78);
+	backdrop-filter: blur(26px) saturate(1.15);
+	-webkit-backdrop-filter: blur(26px) saturate(1.15);
+	border-color: rgba(255, 255, 255, 0.75);
+	box-shadow: 0 24px 60px rgba(30, 40, 60, 0.18);
+}
+
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .hnav {
+	background: rgba(255, 255, 255, 0.6);
+	backdrop-filter: blur(18px) saturate(1.15);
+	-webkit-backdrop-filter: blur(18px) saturate(1.15);
+}
+
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-dialog,
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-message-box {
+	background: rgba(255, 255, 255, 0.72);
+	backdrop-filter: blur(28px) saturate(1.15);
+	-webkit-backdrop-filter: blur(28px) saturate(1.15);
+	border: 1px solid rgba(255, 255, 255, 0.7);
+	box-shadow: 0 24px 70px rgba(30, 40, 60, 0.2);
+}
+
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-popper.is-light,
+html:not(.dark)[data-login-template="glassmorphism"]:not(:has(.login-page)) .el-popper.is-dark {
+	backdrop-filter: blur(22px) saturate(1.1);
+	-webkit-backdrop-filter: blur(22px) saturate(1.1);
+	border-color: rgba(255, 255, 255, 0.7);
 }
