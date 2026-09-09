@@ -11,6 +11,15 @@
 html[data-login-template]:not(:has(.login-page)) {
 	--email-hover-background: color-mix(in srgb, var(--el-color-primary) 10%, var(--el-bg-color));
 	--choose-account-background: color-mix(in srgb, var(--el-color-primary) 13%, var(--el-bg-color));
+
+	/* 元素填充变量整体染主题色：全站所有走 fill 的悬停
+	   （账户列表/头部按钮/island/下拉/分页/表格行……）自动跟随主题，
+	   不再出现中性灰悬停。透明底让玻璃材质透出环境光。 */
+	--el-fill-color-extra-light: color-mix(in srgb, var(--el-color-primary) 5%, transparent);
+	--el-fill-color-light: color-mix(in srgb, var(--el-color-primary) 9%, transparent);
+	--el-fill-color: color-mix(in srgb, var(--el-color-primary) 12%, transparent);
+	--el-fill-color-dark: color-mix(in srgb, var(--el-color-primary) 16%, transparent);
+	--base-fill: color-mix(in srgb, var(--el-color-primary) 10%, transparent);
 }
 
 /* ── 悬停态：一律染主题色，不用中性灰 ── */
