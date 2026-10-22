@@ -1,15 +1,10 @@
 <div align="center">
 
-# Xi-Mail
+# Lemon-Mail
 
 **基于 Cloudflare 全家桶的自托管邮箱服务**
 
 二次开发自 [cloud-mail](https://github.com/eoao/cloud-mail)，UI 全面重设计，功能持续扩展
-
-[![Version](https://img.shields.io/badge/Version-v3.5.3-6366f1)](https://github.com/PastKing/xi-mail/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/PastKing/xi-mail?style=flat&color=6366f1)](https://github.com/PastKing/xi-mail/stargazers)
-[![Telegram](https://img.shields.io/badge/Telegram-@pk__oa-26A5E4?logo=telegram)](https://t.me/pk_oa)
 
 [简体中文](README.md) | [English](README-en.md)
 
@@ -67,7 +62,7 @@ x-admin-auth: <your-token>
 前置条件：Node.js ≥ 20、已 `npx wrangler login`、一个托管在 Cloudflare 并开启 Email Routing 的域名。
 
 ```bash
-git clone https://github.com/PastKing/xi-mail.git
+git clone https://github.com/lemon-casino/Lemon-mail.git
 cd xi-mail/mail-worker && npm install
 
 # 创建 Cloudflare 资源，记录输出的 ID
