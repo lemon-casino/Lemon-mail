@@ -26,8 +26,9 @@
 
 ## 🔑 在线体验
 
-演示站 [mail.azx.us](https://mail.azx.us)，用注册码 `viewUser` 注册（仅限 `@nlfree.me` 后缀）。仅供预览，请勿存放真实邮件。
+演示站   [mail.lemon.vin](https://mail.lemon.vin)
 
+ 
 ---
 
 ## ✨ 主要特性
@@ -131,19 +132,6 @@ xi-mail/
 ├── mail-worker-sub/   # 子 Worker 模板：仅收信 + API，附部署与接口文档
 └── doc/images/        # 截图
 ```
-
----
-
-## 💬 社区与支持
-
-[GitHub](https://github.com/PastKing/xi-mail) · [Telegram @pk_oa](https://t.me/pk_oa) · 上游项目 [eoao/cloud-mail](https://github.com/eoao/cloud-mail)
-
-若本项目对你有帮助，欢迎捐赠 USDT 支持持续开发：
-
-| 网络 | 地址 |
-|------|------|
-| BEP20 (BSC) | `0x555390f5c07cf76cc344f42612196e8669e3586b` |
-| TRC20 (TRON) | `TVqK4thJCsaaWvp1Dah9F5CFZ1iqw75f4G` |
 
 ---
 
